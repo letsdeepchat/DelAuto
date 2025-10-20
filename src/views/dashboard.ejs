@@ -9,6 +9,7 @@
     <link rel="icon" href="/icon-192.png" sizes="192x192">
     <link rel="apple-touch-icon" href="/icon-192.png">
     <title>Agent Dashboard - Delivery Automation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -257,6 +258,14 @@
             // Admin sections
             if (agent.role === 'admin') {
                 html += '<div class="admin-analytics">';
+                html += '<h3>ROI Analysis</h3>';
+                html += '<div id="roi-analysis" class="loading">Loading ROI analysis...</div>';
+                html += '<h3>Delivery Trends</h3>';
+                html += '<canvas id="delivery-chart" width="400" height="200"></canvas>';
+                html += '<h3>Call Trends</h3>';
+                html += '<canvas id="call-chart" width="400" height="200"></canvas>';
+                html += '<h3>AI Insights</h3>';
+                html += '<div id="ai-insights" class="loading">Loading AI insights...</div>';
                 html += '<h3>System Overview</h3>';
                 html += '<div id="system-overview" class="loading">Loading system overview...</div>';
                 html += '<h3>Agent Performance</h3>';
@@ -266,6 +275,10 @@
                 html += '</div>';
 
                 // Load admin analytics
+                loadROI();
+                loadDeliveryChart();
+                loadCallChart();
+                loadAIInsights();
                 loadSystemOverview();
                 loadAgentPerformance();
                 loadDeliveryStatus();
@@ -462,6 +475,141 @@
             localStorage.removeItem('token');
             localStorage.removeItem('agent');
             window.location.href = '/login';
+        }
+
+        async function loadROI() {
+            try {
+                const response = await fetch('/api/analytics/roi', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const roi = await response.json();
+                    displayROI(roi);
+                } else {
+                    document.getElementById('roi-analysis').innerHTML = 'Error loading ROI analysis';
+                }
+            } catch (error) {
+                document.getElementById('roi-analysis').innerHTML = 'Network error';
+            }
+        }
+
+        function displayROI(roi) {
+            let html = '<div class="stats-grid">';
+            html += `<div class="stat-card"><div class="stat-value">$${roi.savings.total.toLocaleString()}</div><div class="stat-label">Total Savings</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">$${roi.costs.total.toLocaleString()}</div><div class="stat-label">Total Costs</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${roi.roi.percentage}%</div><div class="stat-label">ROI Percentage</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${roi.roi.paybackPeriod} months</div><div class="stat-label">Payback Period</div></div>`;
+            html += '</div>';
+            html += '<p><strong>Projections:</strong> ' + roi.projections.description + '</p>';
+            document.getElementById('roi-analysis').innerHTML = html;
+        }
+
+        async function loadDeliveryChart() {
+            try {
+                const response = await fetch('/api/analytics/timeseries/deliveries', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    renderChart('delivery-chart', 'Delivery Trends', data);
+                }
+            } catch (error) {
+                console.error('Error loading delivery chart:', error);
+            }
+        }
+
+        async function loadCallChart() {
+            try {
+                const response = await fetch('/api/analytics/timeseries/calls', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    renderChart('call-chart', 'Call Trends', data);
+                }
+            } catch (error) {
+                console.error('Error loading call chart:', error);
+            }
+        }
+
+        function renderChart(canvasId, title, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const labels = data.map(d => d.date);
+            const totalData = data.map(d => d.count);
+            const successfulData = data.map(d => d.successful);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total',
+                        data: totalData,
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    }, {
+                        label: 'Successful',
+                        data: successfulData,
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadAIInsights() {
+            try {
+                const response = await fetch('/api/analytics/ai/status', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const ai = await response.json();
+                    displayAIInsights(ai);
+                } else {
+                    document.getElementById('ai-insights').innerHTML = 'Error loading AI insights';
+                }
+            } catch (error) {
+                document.getElementById('ai-insights').innerHTML = 'Network error';
+            }
+        }
+
+        function displayAIInsights(ai) {
+            let html = '<div class="stats-grid">';
+            html += `<div class="stat-card"><div class="stat-value">${ai.enabled ? 'Enabled' : 'Disabled'}</div><div class="stat-label">AI Status</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${ai.provider || 'N/A'}</div><div class="stat-label">Provider</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${ai.features ? ai.features.length : 0}</div><div class="stat-label">Features</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${ai.cacheEnabled ? 'Yes' : 'No'}</div><div class="stat-label">Cache Enabled</div></div>`;
+            html += '</div>';
+            if (ai.features && ai.features.length > 0) {
+                html += '<p><strong>Features:</strong> ' + ai.features.join(', ') + '</p>';
+            }
+            document.getElementById('ai-insights').innerHTML = html;
         }
 
         // Service Worker Registration

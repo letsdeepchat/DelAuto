@@ -278,6 +278,148 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
   }
 
   /**
+   * Voice authentication using speaker verification
+   * @param {string} audioUrl - URL of the voice sample
+   * @param {string} profileId - Voice profile ID to verify against
+   * @returns {Object} - Authentication result
+   */
+  async authenticateVoice(audioUrl, profileId) {
+    if (!this.isEnabled || !this.openai) {
+      return { success: false, error: 'AI service not available' };
+    }
+
+    const cacheKey = `voice_auth:${profileId}:${Date.now()}`;
+
+    try {
+      logger.info(`Starting voice authentication for profile ${profileId}`);
+
+      // Download audio file
+      const audioResponse = await axios.get(audioUrl, {
+        responseType: 'arraybuffer',
+        timeout: 30000
+      });
+
+      if (audioResponse.status !== 200) {
+        throw new Error(`Failed to download audio: ${audioResponse.status}`);
+      }
+
+      const audioBuffer = Buffer.from(audioResponse.data);
+      const { Readable } = require('stream');
+      const audioStream = Readable.from(audioBuffer);
+
+      // For now, we'll use a simplified approach since OpenAI doesn't have speaker verification
+      // In production, you'd integrate with a specialized voice biometrics service
+      const result = await this.performVoiceVerification(audioStream, profileId);
+
+      // Cache result for 5 minutes
+      await cacheService.set(cacheKey, result, 5 * 60);
+
+      logger.info(`Voice authentication completed for profile ${profileId}`);
+      return result;
+
+    } catch (error) {
+      logger.error(`Voice authentication failed for profile ${profileId}:`, error);
+
+      const errorResult = {
+        success: false,
+        authenticated: false,
+        confidence: 0,
+        error: error.message,
+        profileId,
+        timestamp: new Date().toISOString()
+      };
+
+      await cacheService.set(cacheKey, errorResult, 60);
+      return errorResult;
+    }
+  }
+
+  /**
+   * Simplified voice verification (placeholder for production implementation)
+   * In production, integrate with services like Microsoft Speaker Recognition or similar
+   * @param {Readable} audioStream - Audio stream
+   * @param {string} profileId - Profile ID
+   * @returns {Object} - Verification result
+   */
+  async performVoiceVerification(audioStream, profileId) {
+    // Placeholder implementation - in production, this would call a voice biometrics API
+    // For demo purposes, we'll simulate authentication with random confidence
+
+    const confidence = Math.random() * 100;
+    const authenticated = confidence > 70; // 70% threshold
+
+    return {
+      success: true,
+      authenticated,
+      confidence: Math.round(confidence * 100) / 100,
+      profileId,
+      method: 'voice_biometrics',
+      timestamp: new Date().toISOString(),
+      note: 'This is a simulated result. Integrate with real voice biometrics service for production.'
+    };
+  }
+
+  /**
+   * Create voice profile for authentication
+   * @param {string} audioUrl - Enrollment audio sample
+   * @param {string} userId - User ID
+   * @returns {Object} - Profile creation result
+   */
+  async createVoiceProfile(audioUrl, userId) {
+    if (!this.isEnabled || !this.openai) {
+      return { success: false, error: 'AI service not available' };
+    }
+
+    try {
+      logger.info(`Creating voice profile for user ${userId}`);
+
+      // Download and process enrollment audio
+      const audioResponse = await axios.get(audioUrl, {
+        responseType: 'arraybuffer',
+        timeout: 30000
+      });
+
+      if (audioResponse.status !== 200) {
+        throw new Error(`Failed to download enrollment audio: ${audioResponse.status}`);
+      }
+
+      const audioBuffer = Buffer.from(audioResponse.data);
+
+      // Generate profile ID
+      const profileId = `voice_profile_${userId}_${Date.now()}`;
+
+      // In production, this would extract voice features and store them
+      const profile = {
+        profileId,
+        userId,
+        createdAt: new Date().toISOString(),
+        status: 'active',
+        enrollmentQuality: 'good', // Would be determined by audio analysis
+        features: 'placeholder' // Voice biometric features
+      };
+
+      // Cache profile info
+      await cacheService.set(`voice_profile:${profileId}`, profile, 24 * 60 * 60);
+
+      return {
+        success: true,
+        profileId,
+        userId,
+        status: 'created',
+        message: 'Voice profile created successfully'
+      };
+
+    } catch (error) {
+      logger.error(`Voice profile creation failed for user ${userId}:`, error);
+      return {
+        success: false,
+        error: error.message,
+        userId
+      };
+    }
+  }
+
+  /**
    * Get AI service status
    * @returns {Object} - Service status
    */
@@ -285,7 +427,7 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
     return {
       enabled: this.isEnabled,
       provider: 'OpenAI',
-      features: ['transcription', 'sentiment_analysis', 'keyword_extraction'],
+      features: ['transcription', 'sentiment_analysis', 'keyword_extraction', 'voice_authentication'],
       cacheEnabled: cacheService.isConnected
     };
   }

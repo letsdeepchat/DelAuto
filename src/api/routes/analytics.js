@@ -409,4 +409,315 @@ router.get('/agent/:agentId', authenticateJWT, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/analytics/failed-delivery-reduction:
+ *   get:
+ *     summary: Get failed delivery reduction metrics and ROI
+ *     tags: [Analytics]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analysis (ISO format)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analysis (ISO format)
+ *     responses:
+ *       200:
+ *         description: Failed delivery reduction metrics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 currentPeriod:
+ *                   type: object
+ *                 previousPeriod:
+ *                   type: object
+ *                 improvement:
+ *                   type: object
+ *                 aiPoweredImpact:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ */
+router.get('/failed-delivery-reduction', authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const filters = {};
+    if (req.query.startDate) filters.startDate = req.query.startDate;
+    if (req.query.endDate) filters.endDate = req.query.endDate;
+
+    const metrics = await analyticsService.getFailedDeliveryReductionMetrics(filters);
+    res.json(metrics);
+  } catch (error) {
+    console.error('Error fetching failed delivery reduction metrics:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/customer-response-patterns:
+ *   get:
+ *     summary: Get customer response pattern analytics
+ *     tags: [Analytics]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analysis (ISO format)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analysis (ISO format)
+ *     responses:
+ *       200:
+ *         description: Customer response pattern analytics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hourlyPatterns:
+ *                   type: array
+ *                 responseTypes:
+ *                   type: object
+ *                 insights:
+ *                   type: object
+ *                 recommendations:
+ *                   type: array
+ */
+router.get('/customer-response-patterns', authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const filters = {};
+    if (req.query.startDate) filters.startDate = req.query.startDate;
+    if (req.query.endDate) filters.endDate = req.query.endDate;
+
+    const patterns = await analyticsService.getCustomerResponsePatterns(filters);
+    res.json(patterns);
+  } catch (error) {
+    console.error('Error fetching customer response patterns:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/agent-compliance:
+ *   get:
+ *     summary: Get agent listening compliance metrics
+ *     tags: [Analytics]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analysis (ISO format)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analysis (ISO format)
+ *     responses:
+ *       200:
+ *         description: Agent compliance analytics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 agentBreakdown:
+ *                   type: array
+ *                 overallStats:
+ *                   type: object
+ *                 benchmarks:
+ *                   type: object
+ *                 impact:
+ *                   type: object
+ */
+router.get('/agent-compliance', authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const filters = {};
+    if (req.query.startDate) filters.startDate = req.query.startDate;
+    if (req.query.endDate) filters.endDate = req.query.endDate;
+
+    const compliance = await analyticsService.getAgentListeningCompliance(filters);
+    res.json(compliance);
+  } catch (error) {
+    console.error('Error fetching agent compliance metrics:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/roi:
+ *   get:
+ *     summary: Calculate ROI from delivery automation
+ *     tags: [Analytics]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analysis (ISO format)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analysis (ISO format)
+ *     responses:
+ *       200:
+ *         description: ROI analysis for delivery automation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 savings:
+ *                   type: object
+ *                 costs:
+ *                   type: object
+ *                 roi:
+ *                   type: object
+ *                 assumptions:
+ *                   type: object
+ *                 projections:
+ *                   type: object
+ */
+router.get('/roi', authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const filters = {};
+    if (req.query.startDate) filters.startDate = req.query.startDate;
+    if (req.query.endDate) filters.endDate = req.query.endDate;
+
+    const roi = await analyticsService.getROIFromDeliveryAutomation(filters);
+    res.json(roi);
+  } catch (error) {
+    console.error('Error calculating ROI:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/ai/status:
+ *   get:
+ *     summary: Get AI service status and capabilities
+ *     tags: [Analytics]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: AI service status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enabled:
+ *                   type: boolean
+ *                 provider:
+ *                   type: string
+ *                 features:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 cacheEnabled:
+ *                   type: boolean
+ */
+router.get('/ai/status', authenticateJWT, async (req, res) => {
+  try {
+    const status = aiService.getStatus();
+    res.json(status);
+  } catch (error) {
+    console.error('Error getting AI service status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/timeseries/{metric}:
+ *   get:
+ *     summary: Get time-series data for analytics
+ *     tags: [Analytics]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: metric
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [deliveries, calls]
+ *         description: The metric to get time-series data for
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analysis (ISO format)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analysis (ISO format)
+ *     responses:
+ *       200:
+ *         description: Time-series data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   date:
+ *                     type: string
+ *                   count:
+ *                     type: integer
+ *                   successful:
+ *                     type: integer
+ */
+router.get('/timeseries/:metric', authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const { metric } = req.params;
+    const filters = {};
+    if (req.query.startDate) filters.startDate = req.query.startDate;
+    if (req.query.endDate) filters.endDate = req.query.endDate;
+
+    const data = await analyticsService.getTimeSeriesData(metric, filters);
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching time-series data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

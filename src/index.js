@@ -263,6 +263,7 @@ const recordingsRouter = require('./api/routes/recordings');
 const agentsRouter = require('./api/routes/agents');
 const authRouter = require('./api/routes/auth');
 const analyticsRouter = require('./api/routes/analytics');
+const routingRouter = require('./api/routes/routing');
 const pushRouter = require('./api/routes/push');
 const adminRouter = require('./api/routes/admin');
 const mobileRouter = require('./api/routes/mobile');
@@ -274,6 +275,7 @@ app.use('/api/recordings', authenticateApiKey, recordingsRouter);
 app.use('/api/agents', agentsRouter); // Agents route with JWT auth
 app.use('/api/auth', strictLimiter, authRouter); // Authentication routes with strict rate limiting
 app.use('/api/analytics', analyticsRouter); // Analytics routes
+app.use('/api/routing', routingRouter); // Advanced routing routes
 app.use('/api/push', pushRouter); // Push notification routes
 app.use('/api/admin', strictLimiter, adminRouter); // Admin management routes with strict rate limiting
 app.use('/api/mobile', mobileRouter); // Mobile app routes
