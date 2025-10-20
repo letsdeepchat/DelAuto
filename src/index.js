@@ -1,0 +1,329 @@
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const winston = require('winston');
+const helmet = require('helmet');
+const cors = require('cors');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+
+// Database connection
+require('./database/connection');
+
+// Start queue worker
+require('./queue/callWorker');
+
+// Services
+const monitoringService = require('./services/monitoringService');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+const PORT = process.env.PORT || 3000;
+
+// Swagger definition
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: 'Delivery Automation API',
+    version: '1.0.0',
+    description: 'API for automated delivery communication system',
+  },
+  servers: [
+    {
+      url: `http://localhost:${PORT}`,
+      description: 'Development server',
+    },
+  ],
+  components: {
+    securitySchemes: {
+      ApiKeyAuth: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-api-key',
+      },
+      BearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+    schemas: {
+      Delivery: {
+        type: 'object',
+        properties: {
+          _id: {
+            type: 'string',
+            description: 'Delivery ID',
+          },
+          customer_id: {
+            $ref: '#/components/schemas/Customer',
+          },
+          agent_id: {
+            $ref: '#/components/schemas/Agent',
+          },
+          address: {
+            type: 'string',
+            description: 'Delivery address',
+          },
+          scheduled_time: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Scheduled delivery time',
+          },
+          status: {
+            type: 'string',
+            enum: ['scheduled', 'in_progress', 'completed', 'failed'],
+            description: 'Delivery status',
+          },
+          created_at: {
+            type: 'string',
+            format: 'date-time',
+          },
+          updated_at: {
+            type: 'string',
+            format: 'date-time',
+          },
+        },
+      },
+      Customer: {
+        type: 'object',
+        properties: {
+          _id: {
+            type: 'string',
+          },
+          name: {
+            type: 'string',
+          },
+          phone: {
+            type: 'string',
+          },
+          preferences: {
+            type: 'object',
+          },
+        },
+      },
+      Agent: {
+        type: 'object',
+        properties: {
+          _id: {
+            type: 'string',
+          },
+          name: {
+            type: 'string',
+          },
+          phone: {
+            type: 'string',
+          },
+          current_location: {
+            type: 'string',
+          },
+          active_deliveries: {
+            type: 'number',
+          },
+        },
+      },
+    },
+  },
+  security: [
+    {
+      ApiKeyAuth: [],
+    },
+    {
+      BearerAuth: [],
+    },
+  ],
+};
+
+const options = {
+  swaggerDefinition,
+  apis: ['./src/api/routes/*.js'], // Path to the API routes
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+
+// Swagger UI route
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Logger setup
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  defaultMeta: { service: 'delauto-api' },
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({
+    format: winston.format.simple(),
+  }));
+}
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Compression middleware
+app.use(compression());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// Stricter rate limiting for sensitive endpoints
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 requests per windowMs
+  message: 'Too many sensitive requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request monitoring middleware
+app.use((req, res, next) => {
+  const startTime = Date.now();
+
+  // Log request
+  logger.info(`Request: ${req.method} ${req.path}`, {
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    query: req.query,
+    body: req.method !== 'GET' ? req.body : undefined
+  });
+
+  // Override res.end to capture response time
+  const originalEnd = res.end;
+  res.end = function(...args) {
+    const responseTime = Date.now() - startTime;
+
+    // Record metrics
+    monitoringService.recordRequest(req.method, req.path, res.statusCode, responseTime);
+
+    // Log response
+    logger.info(`Response: ${req.method} ${req.path}`, {
+      statusCode: res.statusCode,
+      responseTime: `${responseTime}ms`,
+      contentLength: res.get('Content-Length')
+    });
+
+    originalEnd.apply(this, args);
+  };
+
+  next();
+});
+
+// Make io available in routes
+app.set('io', io);
+
+// Serve static files from public directory
+app.use(express.static('public'));
+
+// Set view engine
+app.set('view engine', 'ejs');
+app.set('views', './src/views');
+
+// Routes
+const { authenticateApiKey } = require('./api/middleware/auth');
+const deliveriesRouter = require('./api/routes/deliveries');
+const callsRouter = require('./api/routes/calls');
+const webhooksRouter = require('./api/routes/webhooks');
+const recordingsRouter = require('./api/routes/recordings');
+const agentsRouter = require('./api/routes/agents');
+const authRouter = require('./api/routes/auth');
+const analyticsRouter = require('./api/routes/analytics');
+const pushRouter = require('./api/routes/push');
+const adminRouter = require('./api/routes/admin');
+const mobileRouter = require('./api/routes/mobile');
+const webRouter = require('./api/routes/web');
+
+app.use('/api/deliveries', authenticateApiKey, deliveriesRouter);
+app.use('/api/calls', authenticateApiKey, callsRouter);
+app.use('/api/recordings', authenticateApiKey, recordingsRouter);
+app.use('/api/agents', agentsRouter); // Agents route with JWT auth
+app.use('/api/auth', strictLimiter, authRouter); // Authentication routes with strict rate limiting
+app.use('/api/analytics', analyticsRouter); // Analytics routes
+app.use('/api/push', pushRouter); // Push notification routes
+app.use('/api/admin', strictLimiter, adminRouter); // Admin management routes with strict rate limiting
+app.use('/api/mobile', mobileRouter); // Mobile app routes
+// Webhooks don't need auth as they come from Twilio
+app.use('/api/webhooks', webhooksRouter);
+// Web routes for UI
+app.use('/', webRouter);
+
+// API health check
+app.get('/api', (req, res) => {
+  res.json({ message: 'Delivery Automation API', status: 'running' });
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  const healthStatus = monitoringService.getHealthStatus();
+  res.status(healthStatus.status === 'healthy' ? 200 : healthStatus.status === 'warning' ? 200 : 503).json(healthStatus);
+});
+
+// Metrics endpoint (protected - should be behind authentication in production)
+app.get('/metrics', (req, res) => {
+  const metrics = monitoringService.getMetricsSummary();
+  res.json(metrics);
+});
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('Agent connected:', socket.id);
+
+  // Join agent room for notifications
+  socket.on('join-agent-room', (agentId) => {
+    socket.join(`agent_${agentId}`);
+    console.log(`Agent ${agentId} joined room`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Agent disconnected:', socket.id);
+  });
+});
+
+// Scheduled metrics logging (every 5 minutes)
+setInterval(() => {
+  monitoringService.logMetricsSummary();
+}, 5 * 60 * 1000);
+
+// Start server
+server.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
+  logger.info(`Health check available at: http://localhost:${PORT}/health`);
+  logger.info(`Metrics available at: http://localhost:${PORT}/metrics`);
+});
+
+module.exports = { app, server, io };

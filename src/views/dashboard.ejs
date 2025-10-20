@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#007bff">
+    <meta name="description" content="Delivery Automation Agent Dashboard">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon-192.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <title>Agent Dashboard - Delivery Automation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .deliveries {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .delivery-item {
+            border-bottom: 1px solid #eee;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delivery-item:last-child {
+            border-bottom: none;
+        }
+        .delivery-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .delivery-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .status.scheduled { background-color: #ffc107; color: #212529; }
+        .status.in_progress { background-color: #007bff; color: white; }
+        .status.completed { background-color: #28a745; color: white; }
+        .status.failed { background-color: #dc3545; color: white; }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-warning { background-color: #ffc107; color: #212529; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .recordings {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        .recording-item {
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+        .recording-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .recording-link:hover {
+            text-decoration: underline;
+        }
+        .no-deliveries {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .analytics {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            padding: 1rem;
+        }
+        .analytics h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .admin-analytics {
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Agent Dashboard</h1>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <!-- Analytics Section -->
+        <div id="analytics" class="analytics">
+            <div class="loading">Loading analytics...</div>
+        </div>
+
+        <h2>My Deliveries</h2>
+        <div id="deliveries" class="deliveries">
+            <div class="loading">Loading deliveries...</div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let agent = null;
+        let socket = null;
+
+        // Check authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        } else {
+            agent = JSON.parse(localStorage.getItem('agent'));
+            loadAnalytics();
+            loadDeliveries();
+            initSocket();
+        }
+
+        function initSocket() {
+            socket = io();
+
+            // Join agent room
+            socket.emit('join-agent-room', agent.id);
+
+            // Listen for new recordings
+            socket.on('new-recording', (data) => {
+                showNotification(`New recording available for delivery at ${data.address}`);
+                loadDeliveries(); // Refresh deliveries
+            });
+        }
+
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #007bff;
+                color: white;
+                padding: 1rem;
+                border-radius: 4px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                z-index: 1000;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`/api/analytics/agent/${agent.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const analytics = await response.json();
+                    displayAnalytics(analytics);
+                } else {
+                    document.getElementById('analytics').innerHTML = '<p>Error loading analytics</p>';
+                }
+            } catch (error) {
+                document.getElementById('analytics').innerHTML = '<p>Network error loading analytics</p>';
+            }
+        }
+
+        function displayAnalytics(analytics) {
+            let html = '<h2>My Performance</h2>';
+            html += '<div class="stats-grid">';
+            html += `<div class="stat-card"><div class="stat-value">${analytics.totalDeliveries}</div><div class="stat-label">Total Deliveries</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${analytics.completedDeliveries}</div><div class="stat-label">Completed</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${analytics.successRate}%</div><div class="stat-label">Success Rate</div></div>`;
+            html += '</div>';
+
+            // Admin sections
+            if (agent.role === 'admin') {
+                html += '<div class="admin-analytics">';
+                html += '<h3>System Overview</h3>';
+                html += '<div id="system-overview" class="loading">Loading system overview...</div>';
+                html += '<h3>Agent Performance</h3>';
+                html += '<div id="agent-performance" class="loading">Loading agent performance...</div>';
+                html += '<h3>Delivery Status Breakdown</h3>';
+                html += '<div id="delivery-status" class="loading">Loading delivery status...</div>';
+                html += '</div>';
+
+                // Load admin analytics
+                loadSystemOverview();
+                loadAgentPerformance();
+                loadDeliveryStatus();
+            }
+
+            document.getElementById('analytics').innerHTML = html;
+        }
+
+        async function loadSystemOverview() {
+            try {
+                const response = await fetch('/api/analytics/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const overview = await response.json();
+                    displaySystemOverview(overview);
+                } else {
+                    document.getElementById('system-overview').innerHTML = 'Error loading system overview';
+                }
+            } catch (error) {
+                document.getElementById('system-overview').innerHTML = 'Network error';
+            }
+        }
+
+        function displaySystemOverview(overview) {
+            let html = '<div class="stats-grid">';
+            html += `<div class="stat-card"><div class="stat-value">${overview.deliveries.total}</div><div class="stat-label">Total Deliveries</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${overview.deliveries.completed}</div><div class="stat-label">Completed</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${overview.deliveries.successRate}%</div><div class="stat-label">Success Rate</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${overview.agents.total}</div><div class="stat-label">Total Agents</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${overview.agents.active}</div><div class="stat-label">Active Agents</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${overview.calls.total}</div><div class="stat-label">Total Calls</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${overview.calls.withRecordings}</div><div class="stat-label">With Recordings</div></div>`;
+            html += `<div class="stat-card"><div class="stat-value">${overview.calls.recordingRate}%</div><div class="stat-label">Recording Rate</div></div>`;
+            html += '</div>';
+            document.getElementById('system-overview').innerHTML = html;
+        }
+
+        async function loadAgentPerformance() {
+            try {
+                const response = await fetch('/api/analytics/agent-performance', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const performance = await response.json();
+                    displayAgentPerformance(performance);
+                } else {
+                    document.getElementById('agent-performance').innerHTML = 'Error loading agent performance';
+                }
+            } catch (error) {
+                document.getElementById('agent-performance').innerHTML = 'Network error';
+            }
+        }
+
+        function displayAgentPerformance(performance) {
+            if (performance.length === 0) {
+                document.getElementById('agent-performance').innerHTML = 'No agent performance data available';
+                return;
+            }
+
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<thead><tr><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee;">Agent</th><th style="text-align: center; padding: 0.5rem; border-bottom: 1px solid #eee;">Total</th><th style="text-align: center; padding: 0.5rem; border-bottom: 1px solid #eee;">Completed</th><th style="text-align: center; padding: 0.5rem; border-bottom: 1px solid #eee;">Success Rate</th></tr></thead>';
+            html += '<tbody>';
+            performance.forEach(agent => {
+                html += `<tr><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${agent.name} (${agent.email})</td><td style="text-align: center; padding: 0.5rem; border-bottom: 1px solid #eee;">${agent.totalDeliveries}</td><td style="text-align: center; padding: 0.5rem; border-bottom: 1px solid #eee;">${agent.completedDeliveries}</td><td style="text-align: center; padding: 0.5rem; border-bottom: 1px solid #eee;">${agent.successRate}%</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('agent-performance').innerHTML = html;
+        }
+
+        async function loadDeliveryStatus() {
+            try {
+                const response = await fetch('/api/analytics/delivery-status', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const status = await response.json();
+                    displayDeliveryStatus(status);
+                } else {
+                    document.getElementById('delivery-status').innerHTML = 'Error loading delivery status';
+                }
+            } catch (error) {
+                document.getElementById('delivery-status').innerHTML = 'Network error';
+            }
+        }
+
+        function displayDeliveryStatus(status) {
+            let html = '<div class="stats-grid">';
+            Object.keys(status).forEach(key => {
+                const label = key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                html += `<div class="stat-card"><div class="stat-value">${status[key]}</div><div class="stat-label">${label}</div></div>`;
+            });
+            html += '</div>';
+            document.getElementById('delivery-status').innerHTML = html;
+        }
+
+        async function loadDeliveries() {
+            try {
+                const response = await fetch('/api/agents/deliveries', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const deliveries = await response.json();
+                    displayDeliveries(deliveries);
+                } else if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('agent');
+                    window.location.href = '/login';
+                } else {
+                    document.getElementById('deliveries').innerHTML = '<div class="no-deliveries">Error loading deliveries</div>';
+                }
+            } catch (error) {
+                document.getElementById('deliveries').innerHTML = '<div class="no-deliveries">Network error</div>';
+            }
+        }
+
+        function displayDeliveries(deliveries) {
+            const container = document.getElementById('deliveries');
+
+            if (deliveries.length === 0) {
+                container.innerHTML = '<div class="no-deliveries">No deliveries assigned</div>';
+                return;
+            }
+
+            container.innerHTML = deliveries.map(delivery => `
+                <div class="delivery-item">
+                    <div class="delivery-info">
+                        <h3>${delivery.address}</h3>
+                        <div class="delivery-details">
+                            Customer: ${delivery.customer_id.name} (${delivery.customer_id.phone})<br>
+                            Scheduled: ${new Date(delivery.scheduled_time).toLocaleString()}<br>
+                            Status: <span class="status ${delivery.status}">${delivery.status.replace('_', ' ')}</span>
+                        </div>
+                        ${delivery.call_logs && delivery.call_logs.length > 0 ? `
+                            <div class="recordings">
+                                <strong>Recordings:</strong>
+                                ${delivery.call_logs.map(callLog => `
+                                    <div class="recording-item">
+                                        Call: ${new Date(callLog.createdAt).toLocaleString()} (${callLog.status})
+                                        ${callLog.recordings && callLog.recordings.length > 0 ? `
+                                            ${callLog.recordings.map(recording => `
+                                                <br><a href="${recording.audio_url}" target="_blank" class="recording-link">Listen to recording</a>
+                                                ${recording.transcription ? `<br>Transcription: ${recording.transcription}` : ''}
+                                            `).join('')}
+                                        ` : '<br>No recording available'}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<div class="recordings">No calls made yet</div>'}
+                    </div>
+                    <div class="actions">
+                        ${delivery.status === 'scheduled' ? `<button class="btn btn-primary" onclick="updateStatus('${delivery._id}', 'in_progress')">Start Delivery</button>` : ''}
+                        ${delivery.status === 'in_progress' ? `<button class="btn btn-success" onclick="updateStatus('${delivery._id}', 'completed')">Mark Complete</button>` : ''}
+                        ${delivery.status === 'in_progress' ? `<button class="btn btn-danger" onclick="updateStatus('${delivery._id}', 'failed')">Mark Failed</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateStatus(deliveryId, status) {
+            try {
+                const response = await fetch(`/api/agents/deliveries/${deliveryId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (response.ok) {
+                    loadDeliveries(); // Reload deliveries
+                } else {
+                    alert('Error updating status');
+                }
+            } catch (error) {
+                alert('Network error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('agent');
+            window.location.href = '/login';
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+
+        // Request notification permission
+        if ('Notification' in window && 'serviceWorker' in navigator) {
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
