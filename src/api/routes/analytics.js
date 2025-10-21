@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const analyticsService = require('../../services/analyticsService');
 const aiService = require('../../services/aiService');
+const Delivery = require('../../database/models/Delivery');
 const { authenticateJWT, requireAdmin } = require('../middleware/auth');
 const { validateQuery } = require('../middleware/validation');
 

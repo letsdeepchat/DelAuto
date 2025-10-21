@@ -7,7 +7,11 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "migrate": "node src/database/migrate.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --config tests/jest.config.js",
+    "test:watch": "jest --config tests/jest.config.js --watch",
+    "test:coverage": "jest --config tests/jest.config.js --coverage",
+    "test:integration": "jest --config tests/jest.config.js --testPathPattern=integration",
+    "test:unit": "jest --config tests/jest.config.js --testPathPattern=unit"
   },
   "keywords": [],
   "author": "",
@@ -40,8 +44,15 @@
     "winston-cloudwatch": "^6.3.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.8.1",
+    "@types/supertest": "^6.0.3",
+    "autocannon": "^8.0.0",
+    "jest": "^30.2.0",
+    "nock": "^14.0.10",
     "nodemon": "^3.1.10",
+    "sinon": "^21.0.0",
+    "supertest": "^7.1.4",
     "typescript": "^5.9.3"
   }
 }

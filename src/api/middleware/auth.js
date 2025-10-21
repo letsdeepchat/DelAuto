@@ -39,7 +39,7 @@ const authenticateJWT = (req, res, next) => {
 
 // Middleware to check if agent is admin
 const requireAdmin = (req, res, next) => {
-  if (req.agent.role !== 'admin') {
+  if (!req.agent || req.agent.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();
