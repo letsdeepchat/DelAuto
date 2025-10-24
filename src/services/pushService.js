@@ -5,7 +5,7 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
     'mailto:admin@delauto.com',
     process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
+    process.env.VAPID_PRIVATE_KEY,
   );
 }
 
@@ -32,17 +32,22 @@ class PushService {
           body: payload.body,
           icon: '/icon-192x192.png',
           badge: '/badge-72x72.png',
-          data: payload.data || {}
-        })
+          data: payload.data || {},
+        }),
       );
       console.log(`Push notification sent to agent ${agent._id}`);
     } catch (error) {
-      console.error(`Error sending push notification to agent ${agent._id}:`, error);
+      console.error(
+        `Error sending push notification to agent ${agent._id}:`,
+        error,
+      );
 
       // If subscription is expired or invalid, remove it
       if (error.statusCode === 410 || error.statusCode === 400) {
         // TODO: Remove invalid subscription from agent record
-        console.log(`Removing invalid push subscription for agent ${agent._id}`);
+        console.log(
+          `Removing invalid push subscription for agent ${agent._id}`,
+        );
       }
     }
   }
@@ -61,8 +66,8 @@ class PushService {
         type: 'new_recording',
         deliveryId: delivery._id,
         recordingUrl: recordingUrl,
-        address: delivery.address
-      }
+        address: delivery.address,
+      },
     });
   }
 
@@ -80,8 +85,8 @@ class PushService {
         type: 'status_update',
         deliveryId: delivery._id,
         status: newStatus,
-        address: delivery.address
-      }
+        address: delivery.address,
+      },
     });
   }
 
@@ -98,8 +103,8 @@ class PushService {
         type: 'new_delivery',
         deliveryId: delivery._id,
         address: delivery.address,
-        scheduledTime: delivery.scheduled_time
-      }
+        scheduledTime: delivery.scheduled_time,
+      },
     });
   }
 

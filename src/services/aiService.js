@@ -50,7 +50,7 @@ class AIService {
       // Download audio file
       const audioResponse = await axios.get(audioUrl, {
         responseType: 'arraybuffer',
-        timeout: 30000
+        timeout: 30000,
       });
 
       if (audioResponse.status !== 200) {
@@ -69,7 +69,7 @@ class AIService {
         file: audioStream,
         model: 'whisper-1',
         language: 'en', // Can be made configurable
-        response_format: 'json'
+        response_format: 'json',
       });
 
       const result = {
@@ -77,7 +77,7 @@ class AIService {
         transcription: transcription.text,
         recordingId,
         processedAt: new Date().toISOString(),
-        model: 'whisper-1'
+        model: 'whisper-1',
       };
 
       // Cache result for 24 hours
@@ -85,7 +85,6 @@ class AIService {
 
       logger.info(`Transcription completed for recording ${recordingId}`);
       return result;
-
     } catch (error) {
       logger.error(`Transcription failed for recording ${recordingId}:`, error);
 
@@ -93,7 +92,7 @@ class AIService {
         success: false,
         error: error.message,
         recordingId,
-        processedAt: new Date().toISOString()
+        processedAt: new Date().toISOString(),
       };
 
       // Cache error result for 1 hour to avoid repeated failures
@@ -149,11 +148,15 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
       const completion = await this.openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'You are an AI assistant that analyzes customer delivery instructions. Always respond with valid JSON.' },
-          { role: 'user', content: prompt }
+          {
+            role: 'system',
+            content:
+              'You are an AI assistant that analyzes customer delivery instructions. Always respond with valid JSON.',
+          },
+          { role: 'user', content: prompt },
         ],
         max_tokens: 500,
-        temperature: 0.3
+        temperature: 0.3,
       });
 
       const analysisText = completion.choices[0].message.content.trim();
@@ -163,7 +166,10 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
       try {
         analysis = JSON.parse(analysisText);
       } catch (parseError) {
-        logger.warn(`Failed to parse AI analysis JSON for recording ${recordingId}:`, parseError);
+        logger.warn(
+          `Failed to parse AI analysis JSON for recording ${recordingId}:`,
+          parseError,
+        );
         // Fallback parsing - extract what we can
         analysis = this.parseFallbackAnalysis(analysisText);
       }
@@ -174,7 +180,7 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
         transcription,
         analysis,
         processedAt: new Date().toISOString(),
-        model: 'gpt-3.5-turbo'
+        model: 'gpt-3.5-turbo',
       };
 
       // Cache result for 24 hours
@@ -182,7 +188,6 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
 
       logger.info(`Analysis completed for recording ${recordingId}`);
       return result;
-
     } catch (error) {
       logger.error(`Analysis failed for recording ${recordingId}:`, error);
 
@@ -191,7 +196,7 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
         error: error.message,
         recordingId,
         transcription,
-        processedAt: new Date().toISOString()
+        processedAt: new Date().toISOString(),
       };
 
       // Cache error result for 1 hour
@@ -213,28 +218,45 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
       time_sensitive: false,
       conditions: [],
       priority: 'medium',
-      concerns: []
+      concerns: [],
     };
 
     // Simple keyword-based extraction
     const lowerText = text.toLowerCase();
 
-    if (lowerText.includes('urgent') || lowerText.includes('asap') || lowerText.includes('immediately')) {
+    if (
+      lowerText.includes('urgent') ||
+      lowerText.includes('asap') ||
+      lowerText.includes('immediately')
+    ) {
       analysis.priority = 'urgent';
       analysis.time_sensitive = true;
-    } else if (lowerText.includes('important') || lowerText.includes('please')) {
+    } else if (
+      lowerText.includes('important') ||
+      lowerText.includes('please')
+    ) {
       analysis.priority = 'high';
     }
 
-    if (lowerText.includes('leave at door') || lowerText.includes('no signature')) {
+    if (
+      lowerText.includes('leave at door') ||
+      lowerText.includes('no signature')
+    ) {
       analysis.conditions.push('leave at door');
     }
 
-    if (lowerText.includes('signature required') || lowerText.includes('must sign')) {
+    if (
+      lowerText.includes('signature required') ||
+      lowerText.includes('must sign')
+    ) {
       analysis.conditions.push('signature required');
     }
 
-    if (lowerText.includes('problem') || lowerText.includes('issue') || lowerText.includes('concern')) {
+    if (
+      lowerText.includes('problem') ||
+      lowerText.includes('issue') ||
+      lowerText.includes('concern')
+    ) {
       analysis.concerns.push('Customer mentioned issues');
     }
 
@@ -251,21 +273,24 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
     logger.info(`Starting AI processing for recording ${recordingId}`);
 
     // Step 1: Transcribe
-    const transcriptionResult = await this.transcribeRecording(recordingUrl, recordingId);
+    const transcriptionResult = await this.transcribeRecording(
+      recordingUrl,
+      recordingId,
+    );
 
     if (!transcriptionResult.success) {
       return {
         success: false,
         recordingId,
         error: transcriptionResult.error,
-        stage: 'transcription'
+        stage: 'transcription',
       };
     }
 
     // Step 2: Analyze
     const analysisResult = await this.analyzeTranscription(
       transcriptionResult.transcription,
-      recordingId
+      recordingId,
     );
 
     return {
@@ -273,7 +298,7 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
       recordingId,
       transcription: transcriptionResult,
       analysis: analysisResult,
-      processedAt: new Date().toISOString()
+      processedAt: new Date().toISOString(),
     };
   }
 
@@ -296,7 +321,7 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
       // Download audio file
       const audioResponse = await axios.get(audioUrl, {
         responseType: 'arraybuffer',
-        timeout: 30000
+        timeout: 30000,
       });
 
       if (audioResponse.status !== 200) {
@@ -309,16 +334,21 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
 
       // For now, we'll use a simplified approach since OpenAI doesn't have speaker verification
       // In production, you'd integrate with a specialized voice biometrics service
-      const result = await this.performVoiceVerification(audioStream, profileId);
+      const result = await this.performVoiceVerification(
+        audioStream,
+        profileId,
+      );
 
       // Cache result for 5 minutes
       await cacheService.set(cacheKey, result, 5 * 60);
 
       logger.info(`Voice authentication completed for profile ${profileId}`);
       return result;
-
     } catch (error) {
-      logger.error(`Voice authentication failed for profile ${profileId}:`, error);
+      logger.error(
+        `Voice authentication failed for profile ${profileId}:`,
+        error,
+      );
 
       const errorResult = {
         success: false,
@@ -326,7 +356,7 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
         confidence: 0,
         error: error.message,
         profileId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       await cacheService.set(cacheKey, errorResult, 60);
@@ -355,7 +385,7 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
       profileId,
       method: 'voice_biometrics',
       timestamp: new Date().toISOString(),
-      note: 'This is a simulated result. Integrate with real voice biometrics service for production.'
+      note: 'This is a simulated result. Integrate with real voice biometrics service for production.',
     };
   }
 
@@ -376,11 +406,13 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
       // Download and process enrollment audio
       const audioResponse = await axios.get(audioUrl, {
         responseType: 'arraybuffer',
-        timeout: 30000
+        timeout: 30000,
       });
 
       if (audioResponse.status !== 200) {
-        throw new Error(`Failed to download enrollment audio: ${audioResponse.status}`);
+        throw new Error(
+          `Failed to download enrollment audio: ${audioResponse.status}`,
+        );
       }
 
       const audioBuffer = Buffer.from(audioResponse.data);
@@ -395,26 +427,29 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
         createdAt: new Date().toISOString(),
         status: 'active',
         enrollmentQuality: 'good', // Would be determined by audio analysis
-        features: 'placeholder' // Voice biometric features
+        features: 'placeholder', // Voice biometric features
       };
 
       // Cache profile info
-      await cacheService.set(`voice_profile:${profileId}`, profile, 24 * 60 * 60);
+      await cacheService.set(
+        `voice_profile:${profileId}`,
+        profile,
+        24 * 60 * 60,
+      );
 
       return {
         success: true,
         profileId,
         userId,
         status: 'created',
-        message: 'Voice profile created successfully'
+        message: 'Voice profile created successfully',
       };
-
     } catch (error) {
       logger.error(`Voice profile creation failed for user ${userId}:`, error);
       return {
         success: false,
         error: error.message,
-        userId
+        userId,
       };
     }
   }
@@ -427,8 +462,13 @@ Format your response as JSON with these keys: sentiment, instructions, time_sens
     return {
       enabled: this.isEnabled,
       provider: 'OpenAI',
-      features: ['transcription', 'sentiment_analysis', 'keyword_extraction', 'voice_authentication'],
-      cacheEnabled: cacheService.isConnected
+      features: [
+        'transcription',
+        'sentiment_analysis',
+        'keyword_extraction',
+        'voice_authentication',
+      ],
+      cacheEnabled: cacheService.isConnected,
     };
   }
 }

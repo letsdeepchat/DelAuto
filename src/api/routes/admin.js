@@ -16,12 +16,10 @@ router.get('/dashboard', authenticateJWT, requireAdmin, async (req, res) => {
       activeAgents,
       recentDeliveries,
       recentCallLogs,
-      systemHealth
+      systemHealth,
     ] = await Promise.all([
       Delivery.countDocuments(),
-      Delivery.aggregate([
-        { $group: { _id: '$status', count: { $sum: 1 } } }
-      ]),
+      Delivery.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
       Agent.find({ is_active: true }).select('name email phone'),
       Delivery.find()
         .populate('customer_id', 'name phone')
@@ -32,12 +30,12 @@ router.get('/dashboard', authenticateJWT, requireAdmin, async (req, res) => {
         .populate('delivery_id', 'address')
         .sort({ createdAt: -1 })
         .limit(10),
-      getSystemHealth()
+      getSystemHealth(),
     ]);
 
     // Format status counts
     const statusCounts = {};
-    deliveriesByStatus.forEach(item => {
+    deliveriesByStatus.forEach((item) => {
       statusCounts[item._id] = item.count;
     });
 
@@ -45,25 +43,25 @@ router.get('/dashboard', authenticateJWT, requireAdmin, async (req, res) => {
       overview: {
         totalDeliveries,
         statusBreakdown: statusCounts,
-        activeAgents: activeAgents.length
+        activeAgents: activeAgents.length,
       },
       activeAgents,
-      recentDeliveries: recentDeliveries.map(d => ({
+      recentDeliveries: recentDeliveries.map((d) => ({
         id: d._id,
         address: d.address,
         status: d.status,
         customer: d.customer_id,
         agent: d.agent_id,
         scheduledTime: d.scheduled_time,
-        updatedAt: d.updatedAt
+        updatedAt: d.updatedAt,
       })),
-      recentCallLogs: recentCallLogs.map(c => ({
+      recentCallLogs: recentCallLogs.map((c) => ({
         id: c._id,
         delivery: c.delivery_id,
         status: c.status,
-        createdAt: c.createdAt
+        createdAt: c.createdAt,
       })),
-      systemHealth
+      systemHealth,
     });
   } catch (error) {
     console.error('Error fetching admin dashboard:', error);
@@ -77,9 +75,9 @@ router.get('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
     const { status, agent, page = 1, limit = 20 } = req.query;
     const skip = (page - 1) * limit;
 
-    let query = {};
-    if (status) query.status = status;
-    if (agent) query.agent_id = agent;
+    const query = {};
+    if (status) {query.status = status;}
+    if (agent) {query.agent_id = agent;}
 
     const deliveries = await Delivery.find(query)
       .populate('customer_id', 'name phone')
@@ -91,7 +89,7 @@ router.get('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
     const total = await Delivery.countDocuments(query);
 
     res.json({
-      deliveries: deliveries.map(d => ({
+      deliveries: deliveries.map((d) => ({
         id: d._id,
         address: d.address,
         status: d.status,
@@ -99,14 +97,14 @@ router.get('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
         agent: d.agent_id,
         scheduledTime: d.scheduled_time,
         createdAt: d.createdAt,
-        updatedAt: d.updatedAt
+        updatedAt: d.updatedAt,
       })),
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     console.error('Error fetching deliveries:', error);
@@ -124,7 +122,7 @@ router.post('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
       customer_id,
       agent_id,
       scheduled_time: new Date(scheduled_time),
-      status: 'scheduled'
+      status: 'scheduled',
     });
 
     await delivery.save();
@@ -139,7 +137,7 @@ router.post('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
       status: delivery.status,
       customer: delivery.customer_id,
       agent: delivery.agent_id,
-      scheduledTime: delivery.scheduled_time
+      scheduledTime: delivery.scheduled_time,
     });
   } catch (error) {
     console.error('Error creating delivery:', error);
@@ -148,70 +146,86 @@ router.post('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
 });
 
 // PUT /api/admin/deliveries/:id - Update delivery
-router.put('/deliveries/:id', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { status, agent_id, scheduled_time } = req.body;
+router.put(
+  '/deliveries/:id',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { status, agent_id, scheduled_time } = req.body;
 
-    const updateData = {};
-    if (status) updateData.status = status;
-    if (agent_id) updateData.agent_id = agent_id;
-    if (scheduled_time) updateData.scheduled_time = new Date(scheduled_time);
+      const updateData = {};
+      if (status) {updateData.status = status;}
+      if (agent_id) {updateData.agent_id = agent_id;}
+      if (scheduled_time) {updateData.scheduled_time = new Date(scheduled_time);}
 
-    const delivery = await Delivery.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    ).populate('customer_id', 'name phone').populate('agent_id', 'name email');
+      const delivery = await Delivery.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true },
+      )
+        .populate('customer_id', 'name phone')
+        .populate('agent_id', 'name email');
 
-    if (!delivery) {
-      return res.status(404).json({ error: 'Delivery not found' });
+      if (!delivery) {
+        return res.status(404).json({ error: 'Delivery not found' });
+      }
+
+      res.json({
+        id: delivery._id,
+        address: delivery.address,
+        status: delivery.status,
+        customer: delivery.customer_id,
+        agent: delivery.agent_id,
+        scheduledTime: delivery.scheduled_time,
+      });
+    } catch (error) {
+      console.error('Error updating delivery:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    res.json({
-      id: delivery._id,
-      address: delivery.address,
-      status: delivery.status,
-      customer: delivery.customer_id,
-      agent: delivery.agent_id,
-      scheduledTime: delivery.scheduled_time
-    });
-  } catch (error) {
-    console.error('Error updating delivery:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 // DELETE /api/admin/deliveries/:id - Delete delivery
-router.delete('/deliveries/:id', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const delivery = await Delivery.findByIdAndDelete(req.params.id);
+router.delete(
+  '/deliveries/:id',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const delivery = await Delivery.findByIdAndDelete(req.params.id);
 
-    if (!delivery) {
-      return res.status(404).json({ error: 'Delivery not found' });
+      if (!delivery) {
+        return res.status(404).json({ error: 'Delivery not found' });
+      }
+
+      res.json({ message: 'Delivery deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting delivery:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    res.json({ message: 'Delivery deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting delivery:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 // GET /api/admin/agents - Agent management
 router.get('/agents', authenticateJWT, requireAdmin, async (req, res) => {
   try {
-    const agents = await Agent.find().select('-password').sort({ createdAt: -1 });
+    const agents = await Agent.find()
+      .select('-password')
+      .sort({ createdAt: -1 });
 
-    res.json(agents.map(agent => ({
-      id: agent._id,
-      name: agent.name,
-      email: agent.email,
-      phone: agent.phone,
-      role: agent.role,
-      isActive: agent.is_active,
-      activeDeliveries: agent.active_deliveries,
-      createdAt: agent.createdAt
-    })));
+    res.json(
+      agents.map((agent) => ({
+        id: agent._id,
+        name: agent.name,
+        email: agent.email,
+        phone: agent.phone,
+        role: agent.role,
+        isActive: agent.is_active,
+        activeDeliveries: agent.active_deliveries,
+        createdAt: agent.createdAt,
+      })),
+    );
   } catch (error) {
     console.error('Error fetching agents:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -228,7 +242,7 @@ router.post('/agents', authenticateJWT, requireAdmin, async (req, res) => {
       email,
       phone,
       password, // Will be hashed by pre-save middleware
-      role: role || 'agent'
+      role: role || 'agent',
     });
 
     await agent.save();
@@ -239,7 +253,7 @@ router.post('/agents', authenticateJWT, requireAdmin, async (req, res) => {
       email: agent.email,
       phone: agent.phone,
       role: agent.role,
-      isActive: agent.is_active
+      isActive: agent.is_active,
     });
   } catch (error) {
     console.error('Error creating agent:', error);
@@ -257,17 +271,15 @@ router.put('/agents/:id', authenticateJWT, requireAdmin, async (req, res) => {
     const { name, email, phone, role, is_active } = req.body;
 
     const updateData = {};
-    if (name) updateData.name = name;
-    if (email) updateData.email = email;
-    if (phone) updateData.phone = phone;
-    if (role) updateData.role = role;
-    if (typeof is_active === 'boolean') updateData.is_active = is_active;
+    if (name) {updateData.name = name;}
+    if (email) {updateData.email = email;}
+    if (phone) {updateData.phone = phone;}
+    if (role) {updateData.role = role;}
+    if (typeof is_active === 'boolean') {updateData.is_active = is_active;}
 
-    const agent = await Agent.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    ).select('-password');
+    const agent = await Agent.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    }).select('-password');
 
     if (!agent) {
       return res.status(404).json({ error: 'Agent not found' });
@@ -279,7 +291,7 @@ router.put('/agents/:id', authenticateJWT, requireAdmin, async (req, res) => {
       email: agent.email,
       phone: agent.phone,
       role: agent.role,
-      isActive: agent.is_active
+      isActive: agent.is_active,
     });
   } catch (error) {
     console.error('Error updating agent:', error);
@@ -288,20 +300,25 @@ router.put('/agents/:id', authenticateJWT, requireAdmin, async (req, res) => {
 });
 
 // DELETE /api/admin/agents/:id - Delete agent
-router.delete('/agents/:id', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const agent = await Agent.findByIdAndDelete(req.params.id);
+router.delete(
+  '/agents/:id',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const agent = await Agent.findByIdAndDelete(req.params.id);
 
-    if (!agent) {
-      return res.status(404).json({ error: 'Agent not found' });
+      if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+      }
+
+      res.json({ message: 'Agent deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    res.json({ message: 'Agent deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting agent:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 // Helper function to get system health
 async function getSystemHealth() {
@@ -309,7 +326,7 @@ async function getSystemHealth() {
     database: 'unknown',
     redis: 'unknown',
     twilio: 'unknown',
-    storage: 'unknown'
+    storage: 'unknown',
   };
 
   // Check MongoDB
@@ -324,10 +341,16 @@ async function getSystemHealth() {
   health.redis = process.env.REDIS_URL ? 'configured' : 'not_configured';
 
   // Check Twilio
-  health.twilio = process.env.TWILIO_ACCOUNT_SID !== 'ACdummy' ? 'configured' : 'not_configured';
+  health.twilio =
+    process.env.TWILIO_ACCOUNT_SID !== 'ACdummy'
+      ? 'configured'
+      : 'not_configured';
 
   // Check Storage
-  health.storage = process.env.R2_ACCESS_KEY_ID !== 'dummy_access_key' ? 'configured' : 'not_configured';
+  health.storage =
+    process.env.R2_ACCESS_KEY_ID !== 'dummy_access_key'
+      ? 'configured'
+      : 'not_configured';
 
   return health;
 }

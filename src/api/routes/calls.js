@@ -7,7 +7,8 @@ const CallLog = require('../../database/models/CallLog');
 // POST /api/calls/initiate - Trigger customer call
 router.post('/initiate', async (req, res) => {
   try {
-    const { delivery_id, delay } = req.body;
+    const delivery_id = req.body?.delivery_id;
+    const delay = req.body?.delay;
 
     if (!delivery_id) {
       return res.status(400).json({ error: 'delivery_id is required' });
@@ -26,7 +27,7 @@ router.post('/initiate', async (req, res) => {
     res.json({
       message: 'Call job queued successfully',
       job_id: job.id,
-      status: 'queued'
+      status: 'queued',
     });
   } catch (error) {
     console.error('Error queuing call:', error);
@@ -39,7 +40,9 @@ router.get('/:delivery_id', async (req, res) => {
   try {
     const { delivery_id } = req.params;
 
-    const callLogs = await CallLog.find({ delivery_id }).sort({ createdAt: -1 });
+    const callLogs = await CallLog.find({ delivery_id }).sort({
+      createdAt: -1,
+    });
 
     res.json(callLogs);
   } catch (error) {

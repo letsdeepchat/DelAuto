@@ -23,15 +23,6 @@ describe('Webhooks API Routes', () => {
   });
 
   beforeEach(() => {
-    // Mock database
-    mockDb = {
-      collection: sinon.stub().returns({
-        findOne: sinon.stub().resolves(testData.validDelivery),
-        insertOne: sinon.stub().resolves(mockData.mongodb.insertOne),
-        updateOne: sinon.stub().resolves(mockData.mongodb.updateOne)
-      })
-    };
-
     // Mock Twilio webhook validation
     twilioValidateStub = sinon.stub().returns(true);
 
@@ -66,6 +57,7 @@ describe('Webhooks API Routes', () => {
 
   afterEach(() => {
     sinon.restore();
+    delete app.locals.db;
   });
 
   describe('POST /api/webhooks/voice', () => {
@@ -88,15 +80,9 @@ describe('Webhooks API Routes', () => {
     });
 
     it('should include delivery information in voice prompt', async () => {
-      const deliveryWithPackage = {
-        ...testData.validDelivery,
-        package_id: 'PKG123456'
-      };
-      mockDb.collection().findOne.resolves(deliveryWithPackage);
-
       const response = await request(app)
         .post('/api/webhooks/voice')
-        .query({ delivery_id: deliveryWithPackage._id.toString() })
+        .query({ delivery_id: testData.validDelivery._id.toString() })
         .send(voiceWebhookData)
         .expect(200);
 
@@ -114,8 +100,6 @@ describe('Webhooks API Routes', () => {
     });
 
     it('should handle non-existent delivery', async () => {
-      mockDb.collection().findOne.resolves(null);
-
       const response = await request(app)
         .post('/api/webhooks/voice')
         .query({ delivery_id: 'non-existent-id' })

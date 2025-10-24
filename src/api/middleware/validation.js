@@ -12,7 +12,7 @@ const validateBody = (schema) => {
       return res.status(400).json({
         error: 'Validation Error',
         message: error.details[0].message,
-        details: error.details
+        details: error.details,
       });
     }
     next();
@@ -31,7 +31,7 @@ const validateQuery = (schema) => {
       return res.status(400).json({
         error: 'Query Validation Error',
         message: error.details[0].message,
-        details: error.details
+        details: error.details,
       });
     }
     next();
@@ -50,7 +50,7 @@ const validateParams = (schema) => {
       return res.status(400).json({
         error: 'Parameter Validation Error',
         message: error.details[0].message,
-        details: error.details
+        details: error.details,
       });
     }
     next();
@@ -63,13 +63,15 @@ const schemas = {
   agentCreate: Joi.object({
     name: Joi.string().min(2).max(100).required(),
     email: Joi.string().email().required(),
-    phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).required(),
+    phone: Joi.string()
+      .pattern(/^\+?[1-9]\d{1,14}$/)
+      .required(),
     password: Joi.string().min(8).required(),
     role: Joi.string().valid('agent', 'supervisor', 'admin').default('agent'),
     current_location: Joi.object({
       type: Joi.string().valid('Point').default('Point'),
-      coordinates: Joi.array().items(Joi.number()).length(2)
-    })
+      coordinates: Joi.array().items(Joi.number()).length(2),
+    }),
   }),
 
   agentUpdate: Joi.object({
@@ -80,26 +82,30 @@ const schemas = {
     role: Joi.string().valid('agent', 'supervisor', 'admin'),
     current_location: Joi.object({
       type: Joi.string().valid('Point'),
-      coordinates: Joi.array().items(Joi.number()).length(2)
+      coordinates: Joi.array().items(Joi.number()).length(2),
     }),
-    is_active: Joi.boolean()
+    is_active: Joi.boolean(),
   }),
 
   // Delivery validation
   deliveryCreate: Joi.object({
     customer_name: Joi.string().min(2).max(100).required(),
-    customer_phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).required(),
+    customer_phone: Joi.string()
+      .pattern(/^\+?[1-9]\d{1,14}$/)
+      .required(),
     address: Joi.string().min(10).max(500).required(),
     scheduled_time: Joi.date().iso().required(),
     special_instructions: Joi.string().max(1000),
-    priority: Joi.string().valid('low', 'medium', 'high', 'urgent').default('medium'),
+    priority: Joi.string()
+      .valid('low', 'medium', 'high', 'urgent')
+      .default('medium'),
     items: Joi.array().items(
       Joi.object({
         name: Joi.string().required(),
         quantity: Joi.number().integer().min(1).required(),
-        value: Joi.number().min(0)
-      })
-    )
+        value: Joi.number().min(0),
+      }),
+    ),
   }),
 
   deliveryUpdate: Joi.object({
@@ -109,21 +115,30 @@ const schemas = {
     scheduled_time: Joi.date().iso(),
     special_instructions: Joi.string().max(1000),
     priority: Joi.string().valid('low', 'medium', 'high', 'urgent'),
-    status: Joi.string().valid('pending', 'assigned', 'in_transit', 'delivered', 'failed', 'cancelled'),
+    status: Joi.string().valid(
+      'pending',
+      'assigned',
+      'in_transit',
+      'delivered',
+      'failed',
+      'cancelled',
+    ),
     items: Joi.array().items(
       Joi.object({
         name: Joi.string(),
         quantity: Joi.number().integer().min(1),
-        value: Joi.number().min(0)
-      })
-    )
+        value: Joi.number().min(0),
+      }),
+    ),
   }),
 
   // Call validation
   callInitiate: Joi.object({
     delivery_id: Joi.string().length(24).hex().required(), // MongoDB ObjectId
-    customer_phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).required(),
-    agent_id: Joi.string().length(24).hex().required()
+    customer_phone: Joi.string()
+      .pattern(/^\+?[1-9]\d{1,14}$/)
+      .required(),
+    agent_id: Joi.string().length(24).hex().required(),
   }),
 
   // Push notification validation
@@ -131,8 +146,8 @@ const schemas = {
     endpoint: Joi.string().uri().required(),
     keys: Joi.object({
       p256dh: Joi.string().required(),
-      auth: Joi.string().required()
-    }).required()
+      auth: Joi.string().required(),
+    }).required(),
   }),
 
   // Mobile location update
@@ -140,18 +155,18 @@ const schemas = {
     latitude: Joi.number().min(-90).max(90).required(),
     longitude: Joi.number().min(-180).max(180).required(),
     accuracy: Joi.number().min(0),
-    timestamp: Joi.date().iso()
+    timestamp: Joi.date().iso(),
   }),
 
   // Login validation
   login: Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().required()
+    password: Joi.string().required(),
   }),
 
   // ID parameter validation
   idParam: Joi.object({
-    id: Joi.string().length(24).hex().required()
+    id: Joi.string().length(24).hex().required(),
   }),
 
   // Pagination validation
@@ -159,13 +174,13 @@ const schemas = {
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
     sort: Joi.string(),
-    order: Joi.string().valid('asc', 'desc').default('desc')
-  })
+    order: Joi.string().valid('asc', 'desc').default('desc'),
+  }),
 };
 
 module.exports = {
   validateBody,
   validateQuery,
   validateParams,
-  schemas
+  schemas,
 };

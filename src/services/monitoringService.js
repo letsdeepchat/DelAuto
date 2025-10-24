@@ -20,8 +20,8 @@ class MonitoringService {
         totalRecordings: 0,
         activeAgents: 0,
         averageCallDuration: 0,
-        averageDeliveryTime: 0
-      }
+        averageDeliveryTime: 0,
+      },
     };
 
     // Collect system metrics immediately and then every 30 seconds
@@ -62,14 +62,15 @@ class MonitoringService {
         errors: 0,
         totalResponseTime: 0,
         averageResponseTime: 0,
-        lastAccessed: Date.now()
+        lastAccessed: Date.now(),
       });
     }
 
     const endpointData = this.metrics.endpointMetrics.get(endpointKey);
     endpointData.count++;
     endpointData.totalResponseTime += responseTime;
-    endpointData.averageResponseTime = endpointData.totalResponseTime / endpointData.count;
+    endpointData.averageResponseTime =
+      endpointData.totalResponseTime / endpointData.count;
     endpointData.lastAccessed = Date.now();
 
     if (statusCode >= 400) {
@@ -108,24 +109,24 @@ class MonitoringService {
         heapUsed: memUsage.heapUsed,
         external: memUsage.external,
         rssMB: Math.round(memUsage.rss / 1024 / 1024),
-        heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024)
+        heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
       },
       cpu: {
         user: cpuUsage.user,
         system: cpuUsage.system,
         userMS: Math.round(cpuUsage.user / 1000),
-        systemMS: Math.round(cpuUsage.system / 1000)
+        systemMS: Math.round(cpuUsage.system / 1000),
       },
       uptime: {
         process: process.uptime(),
-        system: os.uptime()
+        system: os.uptime(),
       },
       loadAverage: os.loadavg(),
       platform: {
         platform: os.platform(),
         arch: os.arch(),
-        nodeVersion: process.version
-      }
+        nodeVersion: process.version,
+      },
     };
   }
 
@@ -135,9 +136,11 @@ class MonitoringService {
    */
   getMetricsSummary() {
     const uptime = Date.now() - this.metrics.startTime;
-    const avgResponseTime = this.metrics.responseTimes.length > 0
-      ? this.metrics.responseTimes.reduce((a, b) => a + b, 0) / this.metrics.responseTimes.length
-      : 0;
+    const avgResponseTime =
+      this.metrics.responseTimes.length > 0
+        ? this.metrics.responseTimes.reduce((a, b) => a + b, 0) /
+          this.metrics.responseTimes.length
+        : 0;
 
     return {
       uptime,
@@ -145,15 +148,20 @@ class MonitoringService {
       requests: {
         total: this.metrics.requestCount,
         errors: this.metrics.errorCount,
-        errorRate: this.metrics.requestCount > 0 ? (this.metrics.errorCount / this.metrics.requestCount) * 100 : 0,
-        averageResponseTime: Math.round(avgResponseTime)
+        errorRate:
+          this.metrics.requestCount > 0
+            ? (this.metrics.errorCount / this.metrics.requestCount) * 100
+            : 0,
+        averageResponseTime: Math.round(avgResponseTime),
       },
       business: this.metrics.businessMetrics,
       system: this.metrics.systemMetrics,
-      endpoints: Array.from(this.metrics.endpointMetrics.entries()).map(([endpoint, data]) => ({
-        endpoint,
-        ...data
-      })).sort((a, b) => b.count - a.count) // Sort by request count descending
+      endpoints: Array.from(this.metrics.endpointMetrics.entries())
+        .map(([endpoint, data]) => ({
+          endpoint,
+          ...data,
+        }))
+        .sort((a, b) => b.count - a.count), // Sort by request count descending
     };
   }
 
@@ -166,7 +174,7 @@ class MonitoringService {
     const errorRate = summary.requests.errorRate;
 
     let status = 'healthy';
-    let issues = [];
+    const issues = [];
 
     // Check error rate (more than 5% errors is concerning)
     if (errorRate > 5) {
@@ -175,14 +183,16 @@ class MonitoringService {
     }
 
     // Check memory usage (more than 80% heap used is concerning)
-    const heapUsagePercent = (summary.system.memory.heapUsed / summary.system.memory.heapTotal) * 100;
+    const heapUsagePercent =
+      (summary.system.memory.heapUsed / summary.system.memory.heapTotal) * 100;
     if (heapUsagePercent > 80) {
       status = status === 'healthy' ? 'warning' : status;
       issues.push(`High memory usage: ${heapUsagePercent.toFixed(1)}%`);
     }
 
     // Check uptime (less than 1 hour might indicate frequent restarts)
-    if (summary.uptime < 3600000) { // 1 hour
+    if (summary.uptime < 3600000) {
+      // 1 hour
       status = status === 'healthy' ? 'warning' : status;
       issues.push('Service recently started');
     }
@@ -192,7 +202,7 @@ class MonitoringService {
       timestamp: Date.now(),
       version: process.env.npm_package_version || '1.0.0',
       issues,
-      metrics: summary
+      metrics: summary,
     };
   }
 
@@ -207,9 +217,9 @@ class MonitoringService {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${days}d ${hours % 24}h`;
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+    if (days > 0) {return `${days}d ${hours % 24}h`;}
+    if (hours > 0) {return `${hours}h ${minutes % 60}m`;}
+    if (minutes > 0) {return `${minutes}m ${seconds % 60}s`;}
     return `${seconds}s`;
   }
 
@@ -222,7 +232,7 @@ class MonitoringService {
       uptime: summary.uptimeFormatted,
       requests: summary.requests,
       business: summary.business,
-      memoryMB: summary.system.memory?.heapUsedMB || 0
+      memoryMB: summary.system.memory?.heapUsedMB || 0,
     });
   }
 

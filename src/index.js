@@ -160,28 +160,35 @@ const logger = winston.createLogger({
 });
 
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  );
 }
 
 // Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ['\'self\''],
+        styleSrc: ['\'self\'', '\'unsafe-inline\''],
+        scriptSrc: ['\'self\''],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+      },
     },
-  },
-}));
+  }),
+);
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:3001'],
+  origin: process.env.CORS_ORIGIN || [
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
@@ -220,22 +227,27 @@ app.use((req, res, next) => {
     ip: req.ip,
     userAgent: req.get('User-Agent'),
     query: req.query,
-    body: req.method !== 'GET' ? req.body : undefined
+    body: req.method !== 'GET' ? req.body : undefined,
   });
 
   // Override res.end to capture response time
   const originalEnd = res.end;
-  res.end = function(...args) {
+  res.end = function (...args) {
     const responseTime = Date.now() - startTime;
 
     // Record metrics
-    monitoringService.recordRequest(req.method, req.path, res.statusCode, responseTime);
+    monitoringService.recordRequest(
+      req.method,
+      req.path,
+      res.statusCode,
+      responseTime,
+    );
 
     // Log response
     logger.info(`Response: ${req.method} ${req.path}`, {
       statusCode: res.statusCode,
       responseTime: `${responseTime}ms`,
-      contentLength: res.get('Content-Length')
+      contentLength: res.get('Content-Length'),
     });
 
     originalEnd.apply(this, args);
@@ -243,6 +255,12 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Import error handling middleware
+const {
+  errorHandler,
+  notFoundHandler,
+} = require('./api/middleware/errorHandler');
 
 // Make io available in routes
 app.set('io', io);
@@ -255,7 +273,7 @@ app.set('view engine', 'ejs');
 app.set('views', './src/views');
 
 // Routes
-const { authenticateApiKey } = require('./api/middleware/auth');
+const { authenticateApiKey, authenticateJWT, requireAdmin } = require('./api/middleware/auth');
 const deliveriesRouter = require('./api/routes/deliveries');
 const callsRouter = require('./api/routes/calls');
 const webhooksRouter = require('./api/routes/webhooks');
@@ -274,11 +292,11 @@ app.use('/api/calls', authenticateApiKey, callsRouter);
 app.use('/api/recordings', authenticateApiKey, recordingsRouter);
 app.use('/api/agents', agentsRouter); // Agents route with JWT auth
 app.use('/api/auth', strictLimiter, authRouter); // Authentication routes with strict rate limiting
-app.use('/api/analytics', analyticsRouter); // Analytics routes
-app.use('/api/routing', routingRouter); // Advanced routing routes
-app.use('/api/push', pushRouter); // Push notification routes
-app.use('/api/admin', strictLimiter, adminRouter); // Admin management routes with strict rate limiting
-app.use('/api/mobile', mobileRouter); // Mobile app routes
+app.use('/api/analytics', authenticateApiKey, analyticsRouter); // Analytics routes with API key auth
+app.use('/api/routing', authenticateApiKey, routingRouter); // Advanced routing routes with API key auth
+app.use('/api/push', authenticateApiKey, pushRouter); // Push notification routes with API key auth
+app.use('/api/admin', authenticateJWT, requireAdmin, strictLimiter, adminRouter); // Admin management routes with JWT and admin auth, strict rate limiting
+app.use('/api/mobile', authenticateApiKey, mobileRouter); // Mobile app routes with API key auth
 // Webhooks don't need auth as they come from Twilio
 app.use('/api/webhooks', webhooksRouter);
 // Web routes for UI
@@ -292,7 +310,15 @@ app.get('/api', (req, res) => {
 // Health check
 app.get('/health', (req, res) => {
   const healthStatus = monitoringService.getHealthStatus();
-  res.status(healthStatus.status === 'healthy' ? 200 : healthStatus.status === 'warning' ? 200 : 503).json(healthStatus);
+  res
+    .status(
+      healthStatus.status === 'healthy'
+        ? 200
+        : healthStatus.status === 'warning'
+          ? 200
+          : 503,
+    )
+    .json(healthStatus);
 });
 
 // Metrics endpoint (protected - should be behind authentication in production)
@@ -300,6 +326,12 @@ app.get('/metrics', (req, res) => {
   const metrics = monitoringService.getMetricsSummary();
   res.json(metrics);
 });
+
+// 404 handler
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -317,9 +349,12 @@ io.on('connection', (socket) => {
 });
 
 // Scheduled metrics logging (every 5 minutes)
-setInterval(() => {
-  monitoringService.logMetricsSummary();
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    monitoringService.logMetricsSummary();
+  },
+  5 * 60 * 1000,
+);
 
 // Start server
 server.listen(PORT, () => {

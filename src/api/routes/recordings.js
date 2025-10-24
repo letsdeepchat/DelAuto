@@ -9,7 +9,7 @@ router.get('/:id', async (req, res) => {
 
     const recording = await Recording.findById(id).populate({
       path: 'call_log_id',
-      populate: { path: 'delivery_id' }
+      populate: { path: 'delivery_id' },
     });
 
     if (!recording) {
@@ -32,12 +32,14 @@ router.get('/delivery/:delivery_id', async (req, res) => {
       .populate({
         path: 'call_log_id',
         match: { delivery_id },
-        populate: { path: 'delivery_id' }
+        populate: { path: 'delivery_id' },
       })
       .sort({ createdAt: -1 });
 
     // Filter out recordings where call_log_id doesn't match the delivery_id
-    const filteredRecordings = recordings.filter(recording => recording.call_log_id);
+    const filteredRecordings = recordings.filter(
+      (recording) => recording.call_log_id,
+    );
 
     res.json(filteredRecordings);
   } catch (error) {

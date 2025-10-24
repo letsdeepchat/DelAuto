@@ -67,39 +67,51 @@ const { validateQuery } = require('../middleware/validation');
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post('/assign-agent', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { deliveryId, availableAgentIds } = req.body;
+router.post(
+  '/assign-agent',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { deliveryId, availableAgentIds } = req.body;
 
-    if (!deliveryId || !availableAgentIds || !Array.isArray(availableAgentIds)) {
-      return res.status(400).json({
-        error: 'Missing required fields: deliveryId and availableAgentIds array'
-      });
+      if (
+        !deliveryId ||
+        !availableAgentIds ||
+        !Array.isArray(availableAgentIds)
+      ) {
+        return res.status(400).json({
+          error:
+            'Missing required fields: deliveryId and availableAgentIds array',
+        });
+      }
+
+      // Get delivery details (simplified - in production, fetch from database)
+      const delivery = {
+        _id: deliveryId,
+        instructions: req.body.instructions || '',
+        transcription: req.body.transcription || '',
+        priority: req.body.priority || 'medium',
+      };
+
+      // Get available agents (simplified - in production, fetch from database)
+      const availableAgents = availableAgentIds.map((agentId) => ({
+        _id: agentId,
+        name: `Agent ${agentId.slice(-4)}`, // Placeholder name
+        // In production, fetch full agent details
+      }));
+
+      const assignment = await routingService.assignAgentSmart(
+        delivery,
+        availableAgents,
+      );
+      res.json(assignment);
+    } catch (error) {
+      console.error('Error in smart agent assignment:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    // Get delivery details (simplified - in production, fetch from database)
-    const delivery = {
-      _id: deliveryId,
-      instructions: req.body.instructions || '',
-      transcription: req.body.transcription || '',
-      priority: req.body.priority || 'medium'
-    };
-
-    // Get available agents (simplified - in production, fetch from database)
-    const availableAgents = availableAgentIds.map(agentId => ({
-      _id: agentId,
-      name: `Agent ${agentId.slice(-4)}`, // Placeholder name
-      // In production, fetch full agent details
-    }));
-
-    const assignment = await routingService.assignAgentSmart(delivery, availableAgents);
-    res.json(assignment);
-
-  } catch (error) {
-    console.error('Error in smart agent assignment:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 /**
  * @swagger
@@ -167,37 +179,44 @@ router.post('/assign-agent', authenticateJWT, requireAdmin, async (req, res) => 
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post('/optimal-call-timing', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { deliveryId, customerId, customerTimezone } = req.body;
+router.post(
+  '/optimal-call-timing',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { deliveryId, customerId, customerTimezone } = req.body;
 
-    if (!deliveryId || !customerId) {
-      return res.status(400).json({
-        error: 'Missing required fields: deliveryId and customerId'
-      });
+      if (!deliveryId || !customerId) {
+        return res.status(400).json({
+          error: 'Missing required fields: deliveryId and customerId',
+        });
+      }
+
+      // Get delivery and customer details (simplified - in production, fetch from database)
+      const delivery = {
+        _id: deliveryId,
+        address: req.body.deliveryAddress || '',
+        // In production, fetch full delivery details
+      };
+
+      const customer = {
+        _id: customerId,
+        timezone: customerTimezone || 'America/New_York',
+        // In production, fetch full customer details
+      };
+
+      const timing = await routingService.calculateOptimalCallTiming(
+        delivery,
+        customer,
+      );
+      res.json(timing);
+    } catch (error) {
+      console.error('Error calculating optimal call timing:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    // Get delivery and customer details (simplified - in production, fetch from database)
-    const delivery = {
-      _id: deliveryId,
-      address: req.body.deliveryAddress || '',
-      // In production, fetch full delivery details
-    };
-
-    const customer = {
-      _id: customerId,
-      timezone: customerTimezone || 'America/New_York',
-      // In production, fetch full customer details
-    };
-
-    const timing = await routingService.calculateOptimalCallTiming(delivery, customer);
-    res.json(timing);
-
-  } catch (error) {
-    console.error('Error calculating optimal call timing:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 /**
  * @swagger
@@ -257,24 +276,31 @@ router.post('/optimal-call-timing', authenticateJWT, requireAdmin, async (req, r
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post('/learn-customer-preferences', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { customerId, callResult } = req.body;
+router.post(
+  '/learn-customer-preferences',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { customerId, callResult } = req.body;
 
-    if (!customerId || !callResult) {
-      return res.status(400).json({
-        error: 'Missing required fields: customerId and callResult'
-      });
+      if (!customerId || !callResult) {
+        return res.status(400).json({
+          error: 'Missing required fields: customerId and callResult',
+        });
+      }
+
+      const result = await routingService.learnCustomerPreferences(
+        customerId,
+        callResult,
+      );
+      res.json(result);
+    } catch (error) {
+      console.error('Error learning customer preferences:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    const result = await routingService.learnCustomerPreferences(customerId, callResult);
-    res.json(result);
-
-  } catch (error) {
-    console.error('Error learning customer preferences:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 /**
  * @swagger
@@ -332,24 +358,28 @@ router.post('/learn-customer-preferences', authenticateJWT, requireAdmin, async 
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post('/ai/voice-authenticate', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { audioUrl, profileId } = req.body;
+router.post(
+  '/ai/voice-authenticate',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { audioUrl, profileId } = req.body;
 
-    if (!audioUrl || !profileId) {
-      return res.status(400).json({
-        error: 'Missing required fields: audioUrl and profileId'
-      });
+      if (!audioUrl || !profileId) {
+        return res.status(400).json({
+          error: 'Missing required fields: audioUrl and profileId',
+        });
+      }
+
+      const result = await aiService.authenticateVoice(audioUrl, profileId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error in voice authentication:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    const result = await aiService.authenticateVoice(audioUrl, profileId);
-    res.json(result);
-
-  } catch (error) {
-    console.error('Error in voice authentication:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 /**
  * @swagger
@@ -400,24 +430,28 @@ router.post('/ai/voice-authenticate', authenticateJWT, requireAdmin, async (req,
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post('/ai/create-voice-profile', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { audioUrl, userId } = req.body;
+router.post(
+  '/ai/create-voice-profile',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { audioUrl, userId } = req.body;
 
-    if (!audioUrl || !userId) {
-      return res.status(400).json({
-        error: 'Missing required fields: audioUrl and userId'
-      });
+      if (!audioUrl || !userId) {
+        return res.status(400).json({
+          error: 'Missing required fields: audioUrl and userId',
+        });
+      }
+
+      const result = await aiService.createVoiceProfile(audioUrl, userId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error creating voice profile:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    const result = await aiService.createVoiceProfile(audioUrl, userId);
-    res.json(result);
-
-  } catch (error) {
-    console.error('Error creating voice profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 /**
  * @swagger

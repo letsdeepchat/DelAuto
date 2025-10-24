@@ -14,7 +14,7 @@ router.post('/subscribe', authenticateJWT, async (req, res) => {
 
     // Update agent's push subscription
     await Agent.findByIdAndUpdate(req.agent.id, {
-      push_subscription: subscription
+      push_subscription: subscription,
     });
 
     res.json({ message: 'Push subscription saved successfully' });
@@ -28,7 +28,7 @@ router.post('/subscribe', authenticateJWT, async (req, res) => {
 router.post('/unsubscribe', authenticateJWT, async (req, res) => {
   try {
     await Agent.findByIdAndUpdate(req.agent.id, {
-      $unset: { push_subscription: 1 }
+      $unset: { push_subscription: 1 },
     });
 
     res.json({ message: 'Push subscription removed successfully' });
@@ -64,8 +64,8 @@ router.post('/test', authenticateJWT, async (req, res) => {
       body: 'This is a test push notification',
       data: {
         type: 'test',
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
 
     res.json({ message: 'Test notification sent' });

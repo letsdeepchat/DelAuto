@@ -8,7 +8,8 @@ callQueue.process('initiate-call', async (job) => {
 
   try {
     // Get delivery details with populated customer info
-    const delivery = await Delivery.findById(deliveryId).populate('customer_id');
+    const delivery =
+      await Delivery.findById(deliveryId).populate('customer_id');
 
     if (!delivery) {
       throw new Error('Delivery not found');
@@ -17,14 +18,17 @@ callQueue.process('initiate-call', async (job) => {
     // Make the call
     const call = await twilioService.makeCustomerCall({
       _id: delivery._id,
-      customer_phone: delivery.customer_id.phone
+      customer_phone: delivery.customer_id.phone,
     });
 
     console.log(`Call initiated for delivery ${deliveryId}, SID: ${call.sid}`);
 
     return { callSid: call.sid, status: call.status };
   } catch (error) {
-    console.error(`Failed to process call job for delivery ${deliveryId}:`, error);
+    console.error(
+      `Failed to process call job for delivery ${deliveryId}:`,
+      error,
+    );
     throw error;
   }
 });

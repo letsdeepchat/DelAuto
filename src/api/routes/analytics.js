@@ -201,17 +201,19 @@ router.get('/overview', authenticateJWT, requireAdmin, async (req, res) => {
     res.json({
       deliveries: {
         total: summary.overview.totalDeliveries,
-        completed: summary.overview.totalDeliveries * (summary.overview.completionRate / 100),
-        successRate: summary.overview.completionRate
+        completed:
+          summary.overview.totalDeliveries *
+          (summary.overview.completionRate / 100),
+        successRate: summary.overview.completionRate,
       },
       agents: {
         total: summary.overview.activeAgents,
-        active: summary.overview.activeAgents
+        active: summary.overview.activeAgents,
       },
       calls: {
         total: summary.overview.totalCalls,
-        successRate: summary.overview.callSuccessRate
-      }
+        successRate: summary.overview.callSuccessRate,
+      },
     });
   } catch (error) {
     console.error('Error fetching analytics overview:', error);
@@ -220,73 +222,84 @@ router.get('/overview', authenticateJWT, requireAdmin, async (req, res) => {
 });
 
 // GET /api/analytics/agent-performance - Admin: Get agent performance metrics
-router.get('/agent-performance', authenticateJWT, requireAdmin, validateQuery(require('../middleware/validation').schemas.pagination), async (req, res) => {
-  try {
-    const filters = {};
-    if (req.query.startDate || req.query.endDate) {
-      filters.startDate = req.query.startDate;
-      filters.endDate = req.query.endDate;
-    }
-
-    const agentStats = await analyticsService.getAgentAnalytics(filters);
-
-    // Apply pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-
-    const paginatedStats = agentStats.slice(startIndex, endIndex);
-
-    res.json({
-      agents: paginatedStats,
-      pagination: {
-        page,
-        limit,
-        total: agentStats.length,
-        pages: Math.ceil(agentStats.length / limit)
+router.get(
+  '/agent-performance',
+  authenticateJWT,
+  requireAdmin,
+  validateQuery(require('../middleware/validation').schemas.pagination),
+  async (req, res) => {
+    try {
+      const filters = {};
+      if (req.query.startDate || req.query.endDate) {
+        filters.startDate = req.query.startDate;
+        filters.endDate = req.query.endDate;
       }
-    });
-  } catch (error) {
-    console.error('Error fetching agent performance:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+
+      const agentStats = await analyticsService.getAgentAnalytics(filters);
+
+      // Apply pagination
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+
+      const paginatedStats = agentStats.slice(startIndex, endIndex);
+
+      res.json({
+        agents: paginatedStats,
+        pagination: {
+          page,
+          limit,
+          total: agentStats.length,
+          pages: Math.ceil(agentStats.length / limit),
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching agent performance:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
 
 // GET /api/analytics/delivery-status - Admin: Get delivery status breakdown
-router.get('/delivery-status', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const filters = {};
-    if (req.query.startDate || req.query.endDate) {
-      filters.startDate = req.query.startDate;
-      filters.endDate = req.query.endDate;
+router.get(
+  '/delivery-status',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const filters = {};
+      if (req.query.startDate || req.query.endDate) {
+        filters.startDate = req.query.startDate;
+        filters.endDate = req.query.endDate;
+      }
+
+      const analytics = await analyticsService.getDeliveryAnalytics(filters);
+
+      res.json({
+        total: analytics.totalDeliveries,
+        completed: analytics.completedDeliveries,
+        failed: analytics.failedDeliveries,
+        pending: analytics.pendingDeliveries,
+        inTransit: analytics.inTransitDeliveries,
+        completionRate: analytics.completionRate,
+        failureRate: analytics.failureRate,
+      });
+    } catch (error) {
+      console.error('Error fetching delivery status:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    const analytics = await analyticsService.getDeliveryAnalytics(filters);
-
-    res.json({
-      total: analytics.totalDeliveries,
-      completed: analytics.completedDeliveries,
-      failed: analytics.failedDeliveries,
-      pending: analytics.pendingDeliveries,
-      inTransit: analytics.inTransitDeliveries,
-      completionRate: analytics.completionRate,
-      failureRate: analytics.failureRate
-    });
-  } catch (error) {
-    console.error('Error fetching delivery status:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 // GET /api/analytics/deliveries - Admin: Get detailed delivery analytics
 router.get('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
   try {
     const filters = {};
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
-    if (req.query.agentId) filters.agentId = req.query.agentId;
-    if (req.query.status) filters.status = req.query.status;
+    if (req.query.startDate) {filters.startDate = req.query.startDate;}
+    if (req.query.endDate) {filters.endDate = req.query.endDate;}
+    if (req.query.agentId) {filters.agentId = req.query.agentId;}
+    if (req.query.status) {filters.status = req.query.status;}
 
     const analytics = await analyticsService.getDeliveryAnalytics(filters);
     res.json(analytics);
@@ -300,8 +313,8 @@ router.get('/deliveries', authenticateJWT, requireAdmin, async (req, res) => {
 router.get('/calls', authenticateJWT, requireAdmin, async (req, res) => {
   try {
     const filters = {};
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
+    if (req.query.startDate) {filters.startDate = req.query.startDate;}
+    if (req.query.endDate) {filters.endDate = req.query.endDate;}
 
     const analytics = await analyticsService.getCallAnalytics(filters);
     res.json(analytics);
@@ -312,42 +325,59 @@ router.get('/calls', authenticateJWT, requireAdmin, async (req, res) => {
 });
 
 // GET /api/analytics/timeseries/:metric - Admin: Get time series data for charts
-router.get('/timeseries/:metric', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { metric } = req.params;
-    const filters = {};
+router.get(
+  '/timeseries/:metric',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { metric } = req.params;
+      const filters = {};
 
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
+      if (req.query.startDate) {filters.startDate = req.query.startDate;}
+      if (req.query.endDate) {filters.endDate = req.query.endDate;}
 
-    if (!['deliveries', 'calls'].includes(metric)) {
-      return res.status(400).json({ error: 'Invalid metric. Use: deliveries, calls' });
+      if (!['deliveries', 'calls'].includes(metric)) {
+        return res
+          .status(400)
+          .json({ error: 'Invalid metric. Use: deliveries, calls' });
+      }
+
+      const data = await analyticsService.getTimeSeriesData(metric, filters);
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching time series data:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    const data = await analyticsService.getTimeSeriesData(metric, filters);
-    res.json(data);
-  } catch (error) {
-    console.error('Error fetching time series data:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 // POST /api/analytics/ai/process-recording - Admin: Process recording with AI
-router.post('/ai/process-recording', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { recordingUrl, recordingId } = req.body;
+router.post(
+  '/ai/process-recording',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { recordingUrl, recordingId } = req.body;
 
-    if (!recordingUrl || !recordingId) {
-      return res.status(400).json({ error: 'recordingUrl and recordingId are required' });
+      if (!recordingUrl || !recordingId) {
+        return res
+          .status(400)
+          .json({ error: 'recordingUrl and recordingId are required' });
+      }
+
+      const result = await aiService.processRecording(
+        recordingUrl,
+        recordingId,
+      );
+      res.json(result);
+    } catch (error) {
+      console.error('Error processing recording with AI:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    const result = await aiService.processRecording(recordingUrl, recordingId);
-    res.json(result);
-  } catch (error) {
-    console.error('Error processing recording with AI:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  },
+);
 
 // GET /api/analytics/ai/status - Admin: Get AI service status
 router.get('/ai/status', authenticateJWT, requireAdmin, async (req, res) => {
@@ -382,9 +412,14 @@ router.get('/agent/:agentId', authenticateJWT, async (req, res) => {
     }
 
     const deliveries = await Delivery.find({ agent_id: agentId });
-    const completedDeliveries = deliveries.filter(d => d.status === 'completed').length;
+    const completedDeliveries = deliveries.filter(
+      (d) => d.status === 'completed',
+    ).length;
     const totalDeliveries = deliveries.length;
-    const successRate = totalDeliveries > 0 ? (completedDeliveries / totalDeliveries * 100).toFixed(2) : 0;
+    const successRate =
+      totalDeliveries > 0
+        ? ((completedDeliveries / totalDeliveries) * 100).toFixed(2)
+        : 0;
 
     // Get recent deliveries
     const recentDeliveries = await Delivery.find({ agent_id: agentId })
@@ -396,13 +431,13 @@ router.get('/agent/:agentId', authenticateJWT, async (req, res) => {
       totalDeliveries,
       completedDeliveries,
       successRate: parseFloat(successRate),
-      recentDeliveries: recentDeliveries.map(d => ({
+      recentDeliveries: recentDeliveries.map((d) => ({
         id: d._id,
         address: d.address,
         status: d.status,
         customer: d.customer_id,
-        updatedAt: d.updatedAt
-      }))
+        updatedAt: d.updatedAt,
+      })),
     });
   } catch (error) {
     console.error('Error fetching agent analytics:', error);
@@ -452,19 +487,25 @@ router.get('/agent/:agentId', authenticateJWT, async (req, res) => {
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.get('/failed-delivery-reduction', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const filters = {};
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
+router.get(
+  '/failed-delivery-reduction',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const filters = {};
+      if (req.query.startDate) {filters.startDate = req.query.startDate;}
+      if (req.query.endDate) {filters.endDate = req.query.endDate;}
 
-    const metrics = await analyticsService.getFailedDeliveryReductionMetrics(filters);
-    res.json(metrics);
-  } catch (error) {
-    console.error('Error fetching failed delivery reduction metrics:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+      const metrics =
+        await analyticsService.getFailedDeliveryReductionMetrics(filters);
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching failed delivery reduction metrics:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
 
 /**
  * @swagger
@@ -504,19 +545,25 @@ router.get('/failed-delivery-reduction', authenticateJWT, requireAdmin, async (r
  *                 recommendations:
  *                   type: array
  */
-router.get('/customer-response-patterns', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const filters = {};
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
+router.get(
+  '/customer-response-patterns',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const filters = {};
+      if (req.query.startDate) {filters.startDate = req.query.startDate;}
+      if (req.query.endDate) {filters.endDate = req.query.endDate;}
 
-    const patterns = await analyticsService.getCustomerResponsePatterns(filters);
-    res.json(patterns);
-  } catch (error) {
-    console.error('Error fetching customer response patterns:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+      const patterns =
+        await analyticsService.getCustomerResponsePatterns(filters);
+      res.json(patterns);
+    } catch (error) {
+      console.error('Error fetching customer response patterns:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
 
 /**
  * @swagger
@@ -556,19 +603,25 @@ router.get('/customer-response-patterns', authenticateJWT, requireAdmin, async (
  *                 impact:
  *                   type: object
  */
-router.get('/agent-compliance', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const filters = {};
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
+router.get(
+  '/agent-compliance',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const filters = {};
+      if (req.query.startDate) {filters.startDate = req.query.startDate;}
+      if (req.query.endDate) {filters.endDate = req.query.endDate;}
 
-    const compliance = await analyticsService.getAgentListeningCompliance(filters);
-    res.json(compliance);
-  } catch (error) {
-    console.error('Error fetching agent compliance metrics:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+      const compliance =
+        await analyticsService.getAgentListeningCompliance(filters);
+      res.json(compliance);
+    } catch (error) {
+      console.error('Error fetching agent compliance metrics:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
 
 /**
  * @swagger
@@ -613,8 +666,8 @@ router.get('/agent-compliance', authenticateJWT, requireAdmin, async (req, res) 
 router.get('/roi', authenticateJWT, requireAdmin, async (req, res) => {
   try {
     const filters = {};
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
+    if (req.query.startDate) {filters.startDate = req.query.startDate;}
+    if (req.query.endDate) {filters.endDate = req.query.endDate;}
 
     const roi = await analyticsService.getROIFromDeliveryAutomation(filters);
     res.json(roi);
@@ -706,19 +759,24 @@ router.get('/ai/status', authenticateJWT, async (req, res) => {
  *                   successful:
  *                     type: integer
  */
-router.get('/timeseries/:metric', authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { metric } = req.params;
-    const filters = {};
-    if (req.query.startDate) filters.startDate = req.query.startDate;
-    if (req.query.endDate) filters.endDate = req.query.endDate;
+router.get(
+  '/timeseries/:metric',
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { metric } = req.params;
+      const filters = {};
+      if (req.query.startDate) {filters.startDate = req.query.startDate;}
+      if (req.query.endDate) {filters.endDate = req.query.endDate;}
 
-    const data = await analyticsService.getTimeSeriesData(metric, filters);
-    res.json(data);
-  } catch (error) {
-    console.error('Error fetching time-series data:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+      const data = await analyticsService.getTimeSeriesData(metric, filters);
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching time-series data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
 
 module.exports = router;

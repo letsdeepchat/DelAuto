@@ -71,5 +71,5 @@ module.exports = {
   formatPhoneNumber,
   validateEmail,
   generateId,
-  sanitizeString
+  sanitizeString,
 };

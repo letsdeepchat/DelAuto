@@ -13,7 +13,7 @@ class CacheService {
         password: process.env.REDIS_PASSWORD || undefined,
         retryDelayOnFailover: 100,
         maxRetriesPerRequest: 3,
-        lazyConnect: true // Connect only when needed
+        lazyConnect: true, // Connect only when needed
       });
 
       this.redis.on('connect', () => {
@@ -30,7 +30,6 @@ class CacheService {
         this.isConnected = false;
         logger.info('Redis cache connection closed');
       });
-
     } catch (error) {
       logger.warn('Redis cache initialization failed:', error.message);
     }
@@ -43,7 +42,7 @@ class CacheService {
    * @param {number} ttl - Time to live in seconds (optional)
    */
   async set(key, value, ttl = null) {
-    if (!this.isConnected || !this.redis) return false;
+    if (!this.isConnected || !this.redis) {return false;}
 
     try {
       const serializedValue = JSON.stringify(value);
@@ -65,7 +64,7 @@ class CacheService {
    * @returns {any|null} - Parsed JSON value or null if not found/error
    */
   async get(key) {
-    if (!this.isConnected || !this.redis) return null;
+    if (!this.isConnected || !this.redis) {return null;}
 
     try {
       const value = await this.redis.get(key);
@@ -81,7 +80,7 @@ class CacheService {
    * @param {string} key - Cache key
    */
   async del(key) {
-    if (!this.isConnected || !this.redis) return false;
+    if (!this.isConnected || !this.redis) {return false;}
 
     try {
       await this.redis.del(key);
@@ -98,7 +97,7 @@ class CacheService {
    * @returns {boolean}
    */
   async exists(key) {
-    if (!this.isConnected || !this.redis) return false;
+    if (!this.isConnected || !this.redis) {return false;}
 
     try {
       const result = await this.redis.exists(key);
@@ -115,7 +114,7 @@ class CacheService {
    * @param {number} ttl - Time to live in seconds (optional)
    */
   async mset(keyValuePairs, ttl = null) {
-    if (!this.isConnected || !this.redis) return false;
+    if (!this.isConnected || !this.redis) {return false;}
 
     try {
       const pipeline = this.redis.pipeline();
@@ -143,7 +142,7 @@ class CacheService {
    * @returns {Object} - Object with keys and parsed values
    */
   async mget(keys) {
-    if (!this.isConnected || !this.redis) return {};
+    if (!this.isConnected || !this.redis) {return {};}
 
     try {
       const values = await this.redis.mget(keys);
@@ -165,7 +164,7 @@ class CacheService {
    * Clear all cache
    */
   async flushAll() {
-    if (!this.isConnected || !this.redis) return false;
+    if (!this.isConnected || !this.redis) {return false;}
 
     try {
       await this.redis.flushall();
@@ -188,7 +187,7 @@ class CacheService {
       const info = await this.redis.info();
       return {
         connected: true,
-        info: this.parseRedisInfo(info)
+        info: this.parseRedisInfo(info),
       };
     } catch (error) {
       logger.error('Cache stats error:', error);
@@ -205,7 +204,7 @@ class CacheService {
     const lines = info.split('\r\n');
     const result = {};
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       if (line && !line.startsWith('#')) {
         const [key, value] = line.split(':');
         if (key && value) {

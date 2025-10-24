@@ -23,7 +23,7 @@ class RoutingService {
       return {
         success: true,
         agent: availableAgents[0],
-        reasoning: 'Only one agent available'
+        reasoning: 'Only one agent available',
       };
     }
 
@@ -32,16 +32,22 @@ class RoutingService {
 
       // Check cache
       const cached = await cacheService.get(cacheKey);
-      if (cached) return cached;
+      if (cached) {return cached;}
 
       // Analyze instruction complexity
       const complexity = await this.analyzeInstructionComplexity(delivery);
 
       // Get agent performance data
-      const agentPerformance = await this.getAgentPerformanceData(availableAgents);
+      const agentPerformance =
+        await this.getAgentPerformanceData(availableAgents);
 
       // Calculate agent scores
-      const agentScores = await this.calculateAgentScores(availableAgents, complexity, agentPerformance, delivery);
+      const agentScores = await this.calculateAgentScores(
+        availableAgents,
+        complexity,
+        agentPerformance,
+        delivery,
+      );
 
       // Sort agents by score (highest first)
       agentScores.sort((a, b) => b.score - a.score);
@@ -55,27 +61,29 @@ class RoutingService {
         reasoning: bestAgent.reasoning,
         alternatives: agentScores.slice(1, 3), // Top 3 alternatives
         complexity,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
       };
 
       // Cache result
       await cacheService.set(cacheKey, result, this.cacheTTL);
 
-      logger.info(`Smart agent assignment for delivery ${delivery._id}: ${bestAgent.agent.name} (score: ${bestAgent.score})`);
+      logger.info(
+        `Smart agent assignment for delivery ${delivery._id}: ${bestAgent.agent.name} (score: ${bestAgent.score})`,
+      );
       return result;
-
     } catch (error) {
       logger.error('Smart agent assignment error:', error);
 
       // Fallback to random assignment
-      const randomAgent = availableAgents[Math.floor(Math.random() * availableAgents.length)];
+      const randomAgent =
+        availableAgents[Math.floor(Math.random() * availableAgents.length)];
       return {
         success: true,
         agent: randomAgent,
         score: 0,
         reasoning: 'Fallback random assignment due to error',
         alternatives: [],
-        fallback: true
+        fallback: true,
       };
     }
   }
@@ -91,24 +99,30 @@ class RoutingService {
       const cacheKey = `call_timing:${delivery._id}`;
 
       const cached = await cacheService.get(cacheKey);
-      if (cached) return cached;
+      if (cached) {return cached;}
 
       // Get customer timezone and preferences
       const customerTimezone = customer.timezone || 'America/New_York';
-      const customerPreferences = await this.getCustomerCallPreferences(customer._id);
+      const customerPreferences = await this.getCustomerCallPreferences(
+        customer._id,
+      );
 
       // Analyze historical response patterns
-      const responsePatterns = await analyticsService.getCustomerResponsePatterns();
+      const responsePatterns =
+        await analyticsService.getCustomerResponsePatterns();
 
       // Calculate geolocation-based optimal times
-      const geolocationOptimal = await this.calculateGeolocationOptimalTime(delivery, customerTimezone);
+      const geolocationOptimal = await this.calculateGeolocationOptimalTime(
+        delivery,
+        customerTimezone,
+      );
 
       // Combine with customer preferences and patterns
       const optimalTimes = this.combineTimingFactors(
         geolocationOptimal,
         customerPreferences,
         responsePatterns,
-        customerTimezone
+        customerTimezone,
       );
 
       const result = {
@@ -116,14 +130,16 @@ class RoutingService {
         optimalTimes,
         customerTimezone,
         preferences: customerPreferences,
-        reasoning: this.generateTimingReasoning(optimalTimes, customerPreferences),
+        reasoning: this.generateTimingReasoning(
+          optimalTimes,
+          customerPreferences,
+        ),
         alternatives: this.generateAlternativeTimes(optimalTimes),
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
       };
 
       await cacheService.set(cacheKey, result, this.cacheTTL);
       return result;
-
     } catch (error) {
       logger.error('Call timing calculation error:', error);
       return this.getDefaultCallTiming(delivery, customer);
@@ -141,11 +157,11 @@ class RoutingService {
       const cacheKey = `customer_prefs:${customerId}`;
 
       // Get existing preferences
-      let preferences = await cacheService.get(cacheKey) || {
+      let preferences = (await cacheService.get(cacheKey)) || {
         preferredHours: [],
         preferredDays: [],
         responseHistory: [],
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
 
       // Add this call result to history
@@ -154,7 +170,7 @@ class RoutingService {
         status: callResult.status,
         duration: callResult.duration,
         hour: new Date().getHours(),
-        dayOfWeek: new Date().getDay()
+        dayOfWeek: new Date().getDay(),
       });
 
       // Keep only last 50 responses
@@ -173,9 +189,8 @@ class RoutingService {
       return {
         success: true,
         preferences,
-        historySize: preferences.responseHistory.length
+        historySize: preferences.responseHistory.length,
       };
-
     } catch (error) {
       logger.error('Customer preference learning error:', error);
       return { success: false, error: error.message };
@@ -190,23 +205,27 @@ class RoutingService {
 
     // Simple complexity analysis based on keywords and length
     const complexityIndicators = {
-      urgent: /\b(urgent|asap|immediately|rush)\b/i.test(instructions + transcription),
-      complex: /\b(special|careful|fragile|signature|specific)\b/i.test(instructions + transcription),
+      urgent: /\b(urgent|asap|immediately|rush)\b/i.test(
+        instructions + transcription,
+      ),
+      complex: /\b(special|careful|fragile|signature|specific)\b/i.test(
+        instructions + transcription,
+      ),
       length: (instructions + transcription).length,
-      keywords: this.extractKeywords(instructions + transcription)
+      keywords: this.extractKeywords(instructions + transcription),
     };
 
     let complexityScore = 1; // Base complexity
 
-    if (complexityIndicators.urgent) complexityScore += 2;
-    if (complexityIndicators.complex) complexityScore += 1;
-    if (complexityIndicators.length > 200) complexityScore += 1;
-    if (complexityIndicators.keywords.length > 5) complexityScore += 1;
+    if (complexityIndicators.urgent) {complexityScore += 2;}
+    if (complexityIndicators.complex) {complexityScore += 1;}
+    if (complexityIndicators.length > 200) {complexityScore += 1;}
+    if (complexityIndicators.keywords.length > 5) {complexityScore += 1;}
 
     return {
       score: Math.min(complexityScore, 5), // Max score of 5
       indicators: complexityIndicators,
-      level: this.getComplexityLevel(complexityScore)
+      level: this.getComplexityLevel(complexityScore),
     };
   }
 
@@ -215,25 +234,25 @@ class RoutingService {
     const patterns = [
       /\b(leave at door|signature required|fragile|urgent|special instructions)\b/gi,
       /\b(front desk|neighbor|security|gate code|buzz|intercom)\b/gi,
-      /\b(morning|afternoon|evening|weekend|weekday)\b/gi
+      /\b(morning|afternoon|evening|weekend|weekday)\b/gi,
     ];
 
-    patterns.forEach(pattern => {
+    patterns.forEach((pattern) => {
       const matches = text.match(pattern);
-      if (matches) keywords.push(...matches);
+      if (matches) {keywords.push(...matches);}
     });
 
     return [...new Set(keywords)]; // Remove duplicates
   }
 
   getComplexityLevel(score) {
-    if (score <= 1) return 'simple';
-    if (score <= 3) return 'medium';
+    if (score <= 1) {return 'simple';}
+    if (score <= 3) {return 'medium';}
     return 'complex';
   }
 
   async getAgentPerformanceData(agents) {
-    const agentIds = agents.map(agent => agent._id);
+    const agentIds = agents.map((agent) => agent._id);
 
     try {
       // Get performance metrics for the last 30 days
@@ -243,16 +262,16 @@ class RoutingService {
         {
           $match: {
             agent_id: { $in: agentIds },
-            created_at: { $gte: thirtyDaysAgo }
-          }
+            created_at: { $gte: thirtyDaysAgo },
+          },
         },
         {
           $lookup: {
             from: 'deliveries',
             localField: 'delivery_id',
             foreignField: '_id',
-            as: 'delivery'
-          }
+            as: 'delivery',
+          },
         },
         { $unwind: { path: '$delivery', preserveNullAndEmptyArrays: true } },
         {
@@ -260,11 +279,15 @@ class RoutingService {
             _id: '$agent_id',
             totalDeliveries: { $sum: 1 },
             successfulDeliveries: {
-              $sum: { $cond: [{ $eq: ['$delivery.status', 'delivered'] }, 1, 0] }
+              $sum: {
+                $cond: [{ $eq: ['$delivery.status', 'delivered'] }, 1, 0],
+              },
             },
             avgProcessingTime: { $avg: '$listening_duration' },
             urgentDeliveries: {
-              $sum: { $cond: [{ $eq: ['$delivery.priority', 'urgent'] }, 1, 0] }
+              $sum: {
+                $cond: [{ $eq: ['$delivery.priority', 'urgent'] }, 1, 0],
+              },
             },
             urgentSuccess: {
               $sum: {
@@ -272,45 +295,58 @@ class RoutingService {
                   {
                     $and: [
                       { $eq: ['$delivery.priority', 'urgent'] },
-                      { $eq: ['$delivery.status', 'delivered'] }
-                    ]
+                      { $eq: ['$delivery.status', 'delivered'] },
+                    ],
                   },
-                  1, 0
-                ]
-              }
-            }
-          }
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
         },
         {
           $project: {
             successRate: {
               $multiply: [
-                { $divide: ['$successfulDeliveries', { $max: ['$totalDeliveries', 1] }] },
-                100
-              ]
+                {
+                  $divide: [
+                    '$successfulDeliveries',
+                    { $max: ['$totalDeliveries', 1] },
+                  ],
+                },
+                100,
+              ],
             },
             urgentSuccessRate: {
               $multiply: [
-                { $divide: ['$urgentSuccess', { $max: ['$urgentDeliveries', 1] }] },
-                100
-              ]
+                {
+                  $divide: [
+                    '$urgentSuccess',
+                    { $max: ['$urgentDeliveries', 1] },
+                  ],
+                },
+                100,
+              ],
             },
             avgProcessingTime: { $round: ['$avgProcessingTime', 2] },
-            experience: '$totalDeliveries'
-          }
-        }
+            experience: '$totalDeliveries',
+          },
+        },
       ];
 
-      const performanceData = await mongoose.connection.db.collection('recording_listens').aggregate(pipeline).toArray();
+      const performanceData = await mongoose.connection.db
+        .collection('recording_listens')
+        .aggregate(pipeline)
+        .toArray();
 
       // Convert to agent ID keyed object
       const performance = {};
-      performanceData.forEach(data => {
+      performanceData.forEach((data) => {
         performance[data._id.toString()] = data;
       });
 
       return performance;
-
     } catch (error) {
       logger.error('Agent performance data error:', error);
       return {};
@@ -333,11 +369,15 @@ class RoutingService {
       // Factor 2: Experience with complexity (25% weight)
       if (complexity.level === 'complex' && performance.urgentSuccessRate) {
         score += (performance.urgentSuccessRate / 100) * 25;
-        factors.push(`Urgent Handling: ${performance.urgentSuccessRate.toFixed(1)}%`);
+        factors.push(
+          `Urgent Handling: ${performance.urgentSuccessRate.toFixed(1)}%`,
+        );
       } else if (complexity.level === 'simple') {
         // Prefer less experienced agents for simple tasks to balance workload
         score += Math.min(performance.experience || 0, 100) * 0.1;
-        factors.push(`Workload Balance: ${Math.min(performance.experience || 0, 100)}`);
+        factors.push(
+          `Workload Balance: ${Math.min(performance.experience || 0, 100)}`,
+        );
       } else {
         score += (performance.successRate / 100) * 25;
         factors.push(`General Performance: ${successRate.toFixed(1)}%`);
@@ -350,7 +390,8 @@ class RoutingService {
 
       // Factor 4: Processing speed (15% weight) - faster for urgent deliveries
       if (delivery.priority === 'urgent' && performance.avgProcessingTime) {
-        const speedBonus = Math.max(0, 120 - performance.avgProcessingTime) / 120 * 15;
+        const speedBonus =
+          (Math.max(0, 120 - performance.avgProcessingTime) / 120) * 15;
         score += speedBonus;
         factors.push(`Speed: +${speedBonus.toFixed(1)}`);
       }
@@ -364,7 +405,7 @@ class RoutingService {
         agent,
         score: Math.round(score * 10) / 10,
         reasoning,
-        factors
+        factors,
       });
     }
 
@@ -377,14 +418,14 @@ class RoutingService {
     const cacheKey = `customer_prefs:${customerId}`;
     const cached = await cacheService.get(cacheKey);
 
-    if (cached) return cached;
+    if (cached) {return cached;}
 
     // Default preferences if no history
     return {
       preferredHours: [9, 10, 11, 14, 15, 16, 17], // 9 AM - 6 PM
       preferredDays: [1, 2, 3, 4, 5], // Monday - Friday
       responseHistory: [],
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     };
   }
 
@@ -399,22 +440,22 @@ class RoutingService {
       'America/Los_Angeles': -8,
       'Europe/London': 0,
       'Europe/Paris': 1,
-      'Asia/Tokyo': 9
+      'Asia/Tokyo': 9,
     };
 
     const offset = timezoneOffsets[timezone] || 0;
     const utcOptimalStart = (9 - offset + 24) % 24; // Convert 9 AM local to UTC
-    const utcOptimalEnd = (18 - offset + 24) % 24;   // Convert 6 PM local to UTC
+    const utcOptimalEnd = (18 - offset + 24) % 24; // Convert 6 PM local to UTC
 
     return {
       localTimezone: timezone,
       utcOffset: offset,
       optimalHours: {
         start: utcOptimalStart,
-        end: utcOptimalEnd
+        end: utcOptimalEnd,
       },
       businessHours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18], // 9 AM - 6 PM local
-      reasoning: `Based on ${timezone} timezone (${offset >= 0 ? '+' : ''}${offset} UTC)`
+      reasoning: `Based on ${timezone} timezone (${offset >= 0 ? '+' : ''}${offset} UTC)`,
     };
   }
 
@@ -426,40 +467,44 @@ class RoutingService {
 
     // Convert to specific time slots
     const now = new Date();
-    for (let i = 0; i < 7; i++) { // Next 7 days
+    for (let i = 0; i < 7; i++) {
+      // Next 7 days
       const date = new Date(now);
       date.setDate(date.getDate() + i);
 
-      bestHours.forEach(hour => {
+      bestHours.forEach((hour) => {
         const timeSlot = new Date(date);
         timeSlot.setHours(hour, 0, 0, 0);
 
-        if (timeSlot > now) { // Only future times
+        if (timeSlot > now) {
+          // Only future times
           optimalTimes.push({
             datetime: timeSlot.toISOString(),
             localHour: hour,
             dayOfWeek: timeSlot.getDay(),
             score: this.calculateTimeSlotScore(timeSlot, preferences, patterns),
-            reasoning: this.getTimeSlotReasoning(hour, timeSlot.getDay(), preferences)
+            reasoning: this.getTimeSlotReasoning(
+              hour,
+              timeSlot.getDay(),
+              preferences,
+            ),
           });
         }
       });
     }
 
     // Sort by score and return top recommendations
-    return optimalTimes
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+    return optimalTimes.sort((a, b) => b.score - a.score).slice(0, 5);
   }
 
   findBestHours(geolocation, preferences, patterns) {
     const candidates = new Set();
 
     // Add preferred hours
-    preferences.preferredHours.forEach(hour => candidates.add(hour));
+    preferences.preferredHours.forEach((hour) => candidates.add(hour));
 
     // Add business hours
-    geolocation.businessHours.forEach(hour => candidates.add(hour));
+    geolocation.businessHours.forEach((hour) => candidates.add(hour));
 
     // Add best hours from patterns
     if (patterns.insights && patterns.insights.bestCallHour) {
@@ -476,23 +521,24 @@ class RoutingService {
     const dayOfWeek = timeSlot.getDay();
 
     // Preference match (30 points)
-    if (preferences.preferredHours.includes(hour)) score += 30;
-    if (preferences.preferredDays.includes(dayOfWeek)) score += 20;
+    if (preferences.preferredHours.includes(hour)) {score += 30;}
+    if (preferences.preferredDays.includes(dayOfWeek)) {score += 20;}
 
     // Pattern-based scoring (20 points)
     if (patterns.hourlyPatterns) {
-      const hourPattern = patterns.hourlyPatterns.find(h => h.hour === hour);
+      const hourPattern = patterns.hourlyPatterns.find((h) => h.hour === hour);
       if (hourPattern) {
         score += (hourPattern.successRate / 100) * 20;
       }
     }
 
     // Day of week preference (10 points)
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) score += 10; // Weekday bonus
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {score += 10;} // Weekday bonus
 
     // Time of day optimization (20 points)
-    if (hour >= 9 && hour <= 11) score += 15; // Morning preference
-    else if (hour >= 14 && hour <= 17) score += 10; // Afternoon preference
+    if (hour >= 9 && hour <= 11)
+    {score += 15;} // Morning preference
+    else if (hour >= 14 && hour <= 17) {score += 10;} // Afternoon preference
 
     return Math.round(score);
   }
@@ -508,14 +554,22 @@ class RoutingService {
       reasons.push('Customer preferred day');
     }
 
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
     reasons.push(`${dayNames[dayOfWeek]} at ${hour}:00`);
 
     return reasons.join(', ');
   }
 
   generateTimingReasoning(optimalTimes, preferences) {
-    if (optimalTimes.length === 0) return 'No optimal times found';
+    if (optimalTimes.length === 0) {return 'No optimal times found';}
 
     const topTime = optimalTimes[0];
     return `Best time: ${new Date(topTime.datetime).toLocaleString()} (Score: ${topTime.score}). Based on customer preferences and historical patterns.`;
@@ -526,7 +580,7 @@ class RoutingService {
     const alternatives = [];
 
     // Add some buffer hours around optimal times
-    optimalTimes.forEach(time => {
+    optimalTimes.forEach((time) => {
       const date = new Date(time.datetime);
 
       // -1 hour
@@ -534,7 +588,7 @@ class RoutingService {
       earlier.setHours(earlier.getHours() - 1);
       alternatives.push({
         datetime: earlier.toISOString(),
-        reasoning: '1 hour earlier as alternative'
+        reasoning: '1 hour earlier as alternative',
       });
 
       // +1 hour
@@ -542,7 +596,7 @@ class RoutingService {
       later.setHours(later.getHours() + 1);
       alternatives.push({
         datetime: later.toISOString(),
-        reasoning: '1 hour later as alternative'
+        reasoning: '1 hour later as alternative',
       });
     });
 
@@ -556,7 +610,7 @@ class RoutingService {
     nextHour.setHours(now.getHours() + 1, 0, 0, 0);
 
     // Ensure it's during business hours (9 AM - 6 PM)
-    if (nextHour.getHours() < 9) nextHour.setHours(9, 0, 0, 0);
+    if (nextHour.getHours() < 9) {nextHour.setHours(9, 0, 0, 0);}
     if (nextHour.getHours() > 18) {
       nextHour.setDate(nextHour.getDate() + 1);
       nextHour.setHours(9, 0, 0, 0);
@@ -564,19 +618,21 @@ class RoutingService {
 
     return {
       success: true,
-      optimalTimes: [{
-        datetime: nextHour.toISOString(),
-        localHour: nextHour.getHours(),
-        dayOfWeek: nextHour.getDay(),
-        score: 50,
-        reasoning: 'Default business hours fallback'
-      }],
+      optimalTimes: [
+        {
+          datetime: nextHour.toISOString(),
+          localHour: nextHour.getHours(),
+          dayOfWeek: nextHour.getDay(),
+          score: 50,
+          reasoning: 'Default business hours fallback',
+        },
+      ],
       customerTimezone: customer.timezone || 'America/New_York',
       preferences: {},
       reasoning: 'Fallback timing due to calculation error',
       alternatives: [],
       fallback: true,
-      generatedAt: new Date().toISOString()
+      generatedAt: new Date().toISOString(),
     };
   }
 
@@ -591,7 +647,9 @@ class RoutingService {
     }
 
     // Analyze successful calls
-    const successfulCalls = history.filter(call => call.status === 'completed');
+    const successfulCalls = history.filter(
+      (call) => call.status === 'completed',
+    );
 
     if (successfulCalls.length === 0) {
       return preferences;
@@ -599,23 +657,23 @@ class RoutingService {
 
     // Calculate preferred hours based on successful calls
     const hourCounts = {};
-    successfulCalls.forEach(call => {
+    successfulCalls.forEach((call) => {
       hourCounts[call.hour] = (hourCounts[call.hour] || 0) + 1;
     });
 
     const preferredHours = Object.entries(hourCounts)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([hour]) => parseInt(hour));
 
     // Calculate preferred days
     const dayCounts = {};
-    successfulCalls.forEach(call => {
+    successfulCalls.forEach((call) => {
       dayCounts[call.dayOfWeek] = (dayCounts[call.dayOfWeek] || 0) + 1;
     });
 
     const preferredDays = Object.entries(dayCounts)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([day]) => parseInt(day));
 
@@ -635,10 +693,10 @@ class RoutingService {
       features: [
         'smart_agent_assignment',
         'geolocation_call_timing',
-        'customer_preference_learning'
+        'customer_preference_learning',
       ],
       cacheEnabled: cacheService.isConnected,
-      version: '1.0.0'
+      version: '1.0.0',
     };
   }
 }

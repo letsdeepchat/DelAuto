@@ -29,7 +29,10 @@ const authenticateJWT = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'default_secret',
+    );
     req.agent = decoded;
     next();
   } catch (error) {
@@ -48,5 +51,5 @@ const requireAdmin = (req, res, next) => {
 module.exports = {
   authenticateApiKey,
   authenticateJWT,
-  requireAdmin
+  requireAdmin,
 };

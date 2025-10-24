@@ -11,7 +11,8 @@
     "test:watch": "jest --config tests/jest.config.js --watch",
     "test:coverage": "jest --config tests/jest.config.js --coverage",
     "test:integration": "jest --config tests/jest.config.js --testPathPattern=integration",
-    "test:unit": "jest --config tests/jest.config.js --testPathPattern=unit"
+    "test:unit": "jest --config tests/jest.config.js --testPathPattern=unit",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -49,6 +50,7 @@
     "@types/supertest": "^6.0.3",
     "autocannon": "^8.0.0",
     "jest": "^30.2.0",
+    "mongodb-memory-server": "^10.2.3",
     "nock": "^14.0.10",
     "nodemon": "^3.1.10",
     "sinon": "^21.0.0",

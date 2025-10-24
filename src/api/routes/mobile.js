@@ -19,7 +19,7 @@ router.get('/dashboard', authenticateJWT, async (req, res) => {
     // Get pending actions count
     const pendingCount = await Delivery.countDocuments({
       agent_id: agentId,
-      status: { $in: ['scheduled', 'in_progress'] }
+      status: { $in: ['scheduled', 'in_progress'] },
     });
 
     // Get today's deliveries
@@ -30,36 +30,36 @@ router.get('/dashboard', authenticateJWT, async (req, res) => {
 
     const todaysDeliveries = await Delivery.find({
       agent_id: agentId,
-      scheduled_time: { $gte: today, $lt: tomorrow }
+      scheduled_time: { $gte: today, $lt: tomorrow },
     }).populate('customer_id', 'name phone');
 
     res.json({
-      deliveries: deliveries.map(d => ({
+      deliveries: deliveries.map((d) => ({
         id: d._id,
         address: d.address,
         status: d.status,
         customer: {
           name: d.customer_id.name,
-          phone: d.customer_id.phone
+          phone: d.customer_id.phone,
         },
         scheduledTime: d.scheduled_time,
-        hasRecordings: d.call_logs && d.call_logs.length > 0
+        hasRecordings: d.call_logs && d.call_logs.length > 0,
       })),
       summary: {
         totalDeliveries: deliveries.length,
         pendingActions: pendingCount,
-        todaysDeliveries: todaysDeliveries.length
+        todaysDeliveries: todaysDeliveries.length,
       },
-      todaysDeliveries: todaysDeliveries.map(d => ({
+      todaysDeliveries: todaysDeliveries.map((d) => ({
         id: d._id,
         address: d.address,
         status: d.status,
         customer: {
           name: d.customer_id.name,
-          phone: d.customer_id.phone
+          phone: d.customer_id.phone,
         },
-        scheduledTime: d.scheduled_time
-      }))
+        scheduledTime: d.scheduled_time,
+      })),
     });
   } catch (error) {
     console.error('Error fetching mobile dashboard:', error);
@@ -72,7 +72,7 @@ router.get('/deliveries/:id', authenticateJWT, async (req, res) => {
   try {
     const delivery = await Delivery.findOne({
       _id: req.params.id,
-      agent_id: req.agent.id
+      agent_id: req.agent.id,
     }).populate('customer_id', 'name phone');
 
     if (!delivery) {
@@ -91,23 +91,23 @@ router.get('/deliveries/:id', authenticateJWT, async (req, res) => {
         status: delivery.status,
         customer: {
           name: delivery.customer_id.name,
-          phone: delivery.customer_id.phone
+          phone: delivery.customer_id.phone,
         },
         scheduledTime: delivery.scheduled_time,
-        notes: delivery.notes
+        notes: delivery.notes,
       },
-      callLogs: callLogs.map(log => ({
+      callLogs: callLogs.map((log) => ({
         id: log._id,
         status: log.status,
         createdAt: log.createdAt,
-        recordings: log.recordings.map(rec => ({
+        recordings: log.recordings.map((rec) => ({
           id: rec._id,
           url: rec.audio_url,
           duration: rec.duration,
           transcription: rec.transcription,
-          createdAt: rec.createdAt
-        }))
-      }))
+          createdAt: rec.createdAt,
+        })),
+      })),
     });
   } catch (error) {
     console.error('Error fetching delivery details:', error);
@@ -125,9 +125,9 @@ router.put('/deliveries/:id/status', authenticateJWT, async (req, res) => {
       {
         status,
         notes,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
-      { new: true }
+      { new: true },
     ).populate('customer_id', 'name phone');
 
     if (!delivery) {
@@ -139,7 +139,11 @@ router.put('/deliveries/:id/status', authenticateJWT, async (req, res) => {
     const agent = await Agent.findById(req.agent.id);
     if (agent && agent.push_subscription) {
       try {
-        await pushService.sendDeliveryStatusNotification(agent, delivery, status);
+        await pushService.sendDeliveryStatusNotification(
+          agent,
+          delivery,
+          status,
+        );
       } catch (error) {
         console.error('Error sending push notification:', error);
       }
@@ -152,11 +156,11 @@ router.put('/deliveries/:id/status', authenticateJWT, async (req, res) => {
         status: delivery.status,
         customer: {
           name: delivery.customer_id.name,
-          phone: delivery.customer_id.phone
+          phone: delivery.customer_id.phone,
         },
         scheduledTime: delivery.scheduled_time,
-        notes: delivery.notes
-      }
+        notes: delivery.notes,
+      },
     });
   } catch (error) {
     console.error('Error updating delivery status:', error);
@@ -170,7 +174,9 @@ router.post('/location', authenticateJWT, async (req, res) => {
     const { latitude, longitude, accuracy } = req.body;
 
     if (!latitude || !longitude) {
-      return res.status(400).json({ error: 'Latitude and longitude are required' });
+      return res
+        .status(400)
+        .json({ error: 'Latitude and longitude are required' });
     }
 
     await Agent.findByIdAndUpdate(req.agent.id, {
@@ -178,8 +184,8 @@ router.post('/location', authenticateJWT, async (req, res) => {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         accuracy: accuracy ? parseFloat(accuracy) : null,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     });
 
     res.json({ message: 'Location updated successfully' });
@@ -205,7 +211,7 @@ router.get('/profile', authenticateJWT, async (req, res) => {
       phone: agent.phone,
       role: agent.role,
       isActive: agent.is_active,
-      currentLocation: agent.current_location
+      currentLocation: agent.current_location,
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -219,14 +225,12 @@ router.put('/profile', authenticateJWT, async (req, res) => {
     const { name, phone } = req.body;
 
     const updateData = {};
-    if (name) updateData.name = name;
-    if (phone) updateData.phone = phone;
+    if (name) {updateData.name = name;}
+    if (phone) {updateData.phone = phone;}
 
-    const agent = await Agent.findByIdAndUpdate(
-      req.agent.id,
-      updateData,
-      { new: true }
-    ).select('-password');
+    const agent = await Agent.findByIdAndUpdate(req.agent.id, updateData, {
+      new: true,
+    }).select('-password');
 
     if (!agent) {
       return res.status(404).json({ error: 'Agent not found' });
@@ -238,7 +242,7 @@ router.put('/profile', authenticateJWT, async (req, res) => {
       email: agent.email,
       phone: agent.phone,
       role: agent.role,
-      isActive: agent.is_active
+      isActive: agent.is_active,
     });
   } catch (error) {
     console.error('Error updating profile:', error);
@@ -253,16 +257,21 @@ router.post('/emergency', authenticateJWT, async (req, res) => {
     const agent = await Agent.findById(req.agent.id);
 
     // Log emergency
-    console.error(`EMERGENCY ALERT from agent ${agent.name} (${agent.email}): ${message}`);
+    console.error(
+      `EMERGENCY ALERT from agent ${agent.name} (${agent.email}): ${message}`,
+    );
 
     // Send SMS to admin (if configured)
-    if (process.env.ADMIN_PHONE && process.env.TWILIO_ACCOUNT_SID !== 'ACdummy') {
+    if (
+      process.env.ADMIN_PHONE &&
+      process.env.TWILIO_ACCOUNT_SID !== 'ACdummy'
+    ) {
       const twilioService = require('../../services/twilioService');
       try {
         await twilioService.twilioClient.messages.create({
           body: `EMERGENCY: ${agent.name} - ${message}${location ? ` Location: ${location.latitude}, ${location.longitude}` : ''}`,
           from: process.env.TWILIO_PHONE_NUMBER,
-          to: process.env.ADMIN_PHONE
+          to: process.env.ADMIN_PHONE,
         });
       } catch (error) {
         console.error('Error sending emergency SMS:', error);
@@ -271,7 +280,10 @@ router.post('/emergency', authenticateJWT, async (req, res) => {
 
     // Send push notification to all admins
     const pushService = require('../../services/pushService');
-    const admins = await Agent.find({ role: 'admin', push_subscription: { $exists: true } });
+    const admins = await Agent.find({
+      role: 'admin',
+      push_subscription: { $exists: true },
+    });
     for (const admin of admins) {
       try {
         await pushService.sendToAgent(admin, {
@@ -281,8 +293,8 @@ router.post('/emergency', authenticateJWT, async (req, res) => {
             type: 'emergency',
             agentId: agent._id,
             message: message,
-            location: location
-          }
+            location: location,
+          },
         });
       } catch (error) {
         console.error('Error sending emergency push notification:', error);

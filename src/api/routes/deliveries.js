@@ -1,6 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Delivery = require('../../database/models/Delivery');
+const Delivery = require("../../database/models/Delivery");
+const { asyncHandler } = require("../middleware/errorHandler");
 
 /**
  * @swagger
@@ -104,93 +105,93 @@ const Delivery = require('../../database/models/Delivery');
  */
 
 // GET /api/deliveries - Get all deliveries
-router.get('/', async (req, res) => {
-  try {
-    const deliveries = await Delivery.find().populate('customer_id').populate('agent_id').sort({ scheduled_time: -1 });
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    const deliveries = await Delivery.find()
+      .populate("customer_id")
+      .populate("agent_id")
+      .sort({ scheduled_time: -1 });
     res.json(deliveries);
-  } catch (error) {
-    console.error('Error fetching deliveries:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  }),
+);
 
 // GET /api/deliveries/:id - Get delivery by ID
-router.get('/:id', async (req, res) => {
-  try {
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const delivery = await Delivery.findById(id).populate('customer_id').populate('agent_id');
+    const delivery = await Delivery.findById(id)
+      .populate("customer_id")
+      .populate("agent_id");
 
     if (!delivery) {
-      return res.status(404).json({ error: 'Delivery not found' });
+      const { NotFoundError } = require("../middleware/errorHandler");
+      throw new NotFoundError("Delivery");
     }
 
     res.json(delivery);
-  } catch (error) {
-    console.error('Error fetching delivery:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  }),
+);
 
 // POST /api/deliveries - Create new delivery
-router.post('/', async (req, res) => {
-  try {
+router.post(
+  "/",
+  asyncHandler(async (req, res) => {
     const { customer_id, agent_id, address, scheduled_time } = req.body;
 
     const delivery = new Delivery({
       customer_id,
       agent_id,
       address,
-      scheduled_time
+      scheduled_time,
     });
 
     await delivery.save();
-    await delivery.populate('customer_id').populate('agent_id').execPopulate();
+    await delivery.populate("customer_id").populate("agent_id").execPopulate();
 
     res.status(201).json(delivery);
-  } catch (error) {
-    console.error('Error creating delivery:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  }),
+);
 
 // PUT /api/deliveries/:id - Update delivery
-router.put('/:id', async (req, res) => {
-  try {
+router.put(
+  "/:id",
+  asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { customer_id, agent_id, address, scheduled_time, status } = req.body;
 
     const delivery = await Delivery.findByIdAndUpdate(
       id,
       { customer_id, agent_id, address, scheduled_time, status },
-      { new: true, runValidators: true }
-    ).populate('customer_id').populate('agent_id');
+      { new: true, runValidators: true },
+    )
+      .populate("customer_id")
+      .populate("agent_id");
 
     if (!delivery) {
-      return res.status(404).json({ error: 'Delivery not found' });
+      const { NotFoundError } = require("../middleware/errorHandler");
+      throw new NotFoundError("Delivery");
     }
 
     res.json(delivery);
-  } catch (error) {
-    console.error('Error updating delivery:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  }),
+);
 
 // DELETE /api/deliveries/:id - Delete delivery
-router.delete('/:id', async (req, res) => {
-  try {
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
     const { id } = req.params;
     const delivery = await Delivery.findByIdAndDelete(id);
 
     if (!delivery) {
-      return res.status(404).json({ error: 'Delivery not found' });
+      const { NotFoundError } = require("../middleware/errorHandler");
+      throw new NotFoundError("Delivery");
     }
 
-    res.json({ message: 'Delivery deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting delivery:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+    res.json({ message: "Delivery deleted successfully" });
+  }),
+);
 
 module.exports = router;

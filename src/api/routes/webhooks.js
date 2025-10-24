@@ -35,13 +35,16 @@ router.post('/voice', validateTwilioWebhook, async (req, res) => {
       return res.type('text/xml').send(twiml.toString());
     }
 
-    twiml.say({ voice: 'alice' }, 'Hello! This is regarding your delivery scheduled for today. Please record your availability or special delivery instructions after the beep.');
+    twiml.say(
+      { voice: 'alice' },
+      'Hello! This is regarding your delivery scheduled for today. Please record your availability or special delivery instructions after the beep.',
+    );
     twiml.record({
       action: `${process.env.BASE_URL}/api/webhooks/recording?delivery_id=${deliveryId}`,
       maxLength: 60,
       finishOnKey: '#',
       transcribe: true,
-      transcribeCallback: `${process.env.BASE_URL}/api/webhooks/transcription?delivery_id=${deliveryId}`
+      transcribeCallback: `${process.env.BASE_URL}/api/webhooks/transcription?delivery_id=${deliveryId}`,
     });
     twiml.say('We did not receive your message. Goodbye.');
 
@@ -62,7 +65,7 @@ router.post('/recording', validateTwilioWebhook, async (req, res) => {
     const callLog = await CallLog.findOneAndUpdate(
       { call_sid: CallSid },
       { recording_url: RecordingUrl, duration: RecordingDuration },
-      { new: true }
+      { new: true },
     );
 
     if (callLog) {
@@ -70,21 +73,30 @@ router.post('/recording', validateTwilioWebhook, async (req, res) => {
 
       // Download recording from Twilio and upload to Cloudflare R2
       try {
-        if (storageService && process.env.R2_ACCESS_KEY_ID !== 'dummy_access_key') {
+        if (
+          storageService &&
+          process.env.R2_ACCESS_KEY_ID !== 'dummy_access_key'
+        ) {
           const response = await axios.get(RecordingUrl, {
             responseType: 'arraybuffer',
             auth: {
               username: process.env.TWILIO_ACCOUNT_SID,
-              password: process.env.TWILIO_AUTH_TOKEN
-            }
+              password: process.env.TWILIO_AUTH_TOKEN,
+            },
           });
 
           const fileName = `recording-${CallSid}.wav`;
-          finalAudioUrl = await storageService.uploadRecording(response.data, fileName);
+          finalAudioUrl = await storageService.uploadRecording(
+            response.data,
+            fileName,
+          );
           console.log('Recording uploaded to R2:', finalAudioUrl);
         }
       } catch (error) {
-        console.error('Error uploading recording to R2, using Twilio URL:', error);
+        console.error(
+          'Error uploading recording to R2, using Twilio URL:',
+          error,
+        );
         // Fall back to Twilio URL if R2 upload fails
       }
 
@@ -92,19 +104,21 @@ router.post('/recording', validateTwilioWebhook, async (req, res) => {
       const recording = new Recording({
         call_log_id: callLog._id,
         audio_url: finalAudioUrl,
-        duration: RecordingDuration
+        duration: RecordingDuration,
       });
       await recording.save();
 
       // Notify agent if delivery has an agent assigned
-      const delivery = await Delivery.findById(callLog.delivery_id).populate('agent_id');
+      const delivery = await Delivery.findById(callLog.delivery_id).populate(
+        'agent_id',
+      );
       if (delivery && delivery.agent_id) {
         // Send SMS notification
         try {
           await twilioService.twilioClient.messages.create({
             body: `New customer recording available for delivery at ${delivery.address}. Check the app for details.`,
             from: process.env.TWILIO_PHONE_NUMBER,
-            to: delivery.agent_id.phone
+            to: delivery.agent_id.phone,
           });
         } catch (error) {
           console.error('Error sending SMS to agent:', error);
@@ -112,7 +126,11 @@ router.post('/recording', validateTwilioWebhook, async (req, res) => {
 
         // Send push notification
         try {
-          await pushService.sendNewRecordingNotification(delivery.agent_id, delivery, finalAudioUrl);
+          await pushService.sendNewRecordingNotification(
+            delivery.agent_id,
+            delivery,
+            finalAudioUrl,
+          );
         } catch (error) {
           console.error('Error sending push notification:', error);
         }
@@ -124,7 +142,7 @@ router.post('/recording', validateTwilioWebhook, async (req, res) => {
           address: delivery.address,
           customer: delivery.customer_id,
           recordingUrl: finalAudioUrl,
-          duration: RecordingDuration
+          duration: RecordingDuration,
         });
       }
     }
@@ -148,7 +166,7 @@ router.post('/transcription', validateTwilioWebhook, async (req, res) => {
       // Update recording with transcription
       await Recording.findOneAndUpdate(
         { call_log_id: callLog._id },
-        { transcription: TranscriptionText }
+        { transcription: TranscriptionText },
       );
     }
 
@@ -167,7 +185,7 @@ router.post('/call-status', validateTwilioWebhook, async (req, res) => {
     // Update call log status
     await CallLog.findOneAndUpdate(
       { call_sid: CallSid },
-      { status: CallStatus, duration: CallDuration }
+      { status: CallStatus, duration: CallDuration },
     );
 
     res.sendStatus(200);

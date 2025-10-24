@@ -14,7 +14,7 @@ async function addCallJob(deliveryData, delay = 0) {
   const job = await callQueue.add('initiate-call', deliveryData, {
     delay,
     removeOnComplete: 10,
-    removeOnFail: 5
+    removeOnFail: 5,
   });
   return job;
 }
@@ -30,7 +30,7 @@ async function getQueueStatus() {
     waiting: waiting.length,
     active: active.length,
     completed: completed.length,
-    failed: failed.length
+    failed: failed.length,
   };
 }
 
@@ -38,5 +38,5 @@ module.exports = {
   callQueue,
   addCallJob,
   getQueueStatus,
-  redis
+  redis,
 };

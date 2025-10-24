@@ -13,7 +13,9 @@ if (accountSid && authToken) {
 
 async function makeCustomerCall(delivery) {
   if (!twilioClient) {
-    throw new Error('Twilio client not configured. Please set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN');
+    throw new Error(
+      'Twilio client not configured. Please set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN',
+    );
   }
 
   const call = await twilioClient.calls.create({
@@ -21,14 +23,14 @@ async function makeCustomerCall(delivery) {
     to: delivery.customer_phone,
     from: twilioPhoneNumber,
     statusCallback: `${baseUrl}/api/webhooks/call-status`,
-    statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
+    statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
   });
 
   // Save call log
   const callLog = new CallLog({
     delivery_id: delivery._id,
     call_sid: call.sid,
-    status: call.status
+    status: call.status,
   });
   await callLog.save();
 
@@ -37,5 +39,5 @@ async function makeCustomerCall(delivery) {
 
 module.exports = {
   makeCustomerCall,
-  twilioClient
+  twilioClient,
 };

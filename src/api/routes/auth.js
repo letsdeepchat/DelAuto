@@ -32,10 +32,10 @@ router.post('/login', async (req, res) => {
         id: agent._id,
         email: agent.email,
         name: agent.name,
-        role: agent.role
+        role: agent.role,
       },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: '24h' }
+      { expiresIn: '24h' },
     );
 
     res.json({
@@ -46,8 +46,8 @@ router.post('/login', async (req, res) => {
         name: agent.name,
         email: agent.email,
         role: agent.role,
-        phone: agent.phone
-      }
+        phone: agent.phone,
+      },
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -61,13 +61,17 @@ router.post('/register', async (req, res) => {
     const { name, email, password, phone, role = 'agent' } = req.body;
 
     if (!name || !email || !password || !phone) {
-      return res.status(400).json({ error: 'Name, email, password, and phone are required' });
+      return res
+        .status(400)
+        .json({ error: 'Name, email, password, and phone are required' });
     }
 
     // Check if agent already exists
     const existingAgent = await Agent.findOne({ $or: [{ email }, { phone }] });
     if (existingAgent) {
-      return res.status(409).json({ error: 'Agent with this email or phone already exists' });
+      return res
+        .status(409)
+        .json({ error: 'Agent with this email or phone already exists' });
     }
 
     // Hash password
@@ -80,7 +84,7 @@ router.post('/register', async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      role
+      role,
     });
 
     await agent.save();
@@ -91,8 +95,8 @@ router.post('/register', async (req, res) => {
         id: agent._id,
         name: agent.name,
         email: agent.email,
-        role: agent.role
-      }
+        role: agent.role,
+      },
     });
   } catch (error) {
     console.error('Registration error:', error);
