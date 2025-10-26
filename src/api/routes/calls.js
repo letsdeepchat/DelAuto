@@ -7,31 +7,31 @@ const CallLog = require('../../database/models/CallLog');
 // POST /api/calls/initiate - Trigger customer call
 router.post('/initiate', async (req, res) => {
   try {
-    const delivery_id = req.body?.delivery_id;
-    const delay = req.body?.delay;
+    const { delivery_id, delay } = req.body;
 
     if (!delivery_id) {
-      return res.status(400).json({ error: 'delivery_id is required' });
+      return res.status(400).json({ success: false, error: 'delivery_id is required' });
     }
 
     // Verify delivery exists
     const delivery = await Delivery.findById(delivery_id);
 
     if (!delivery) {
-      return res.status(404).json({ error: 'Delivery not found' });
+      return res.status(404).json({ success: false, error: 'Delivery not found' });
     }
 
     // Add job to queue
     const job = await addCallJob({ deliveryId: delivery_id }, delay || 0);
 
     res.json({
+      success: true,
       message: 'Call job queued successfully',
       job_id: job.id,
       status: 'queued',
     });
   } catch (error) {
     console.error('Error queuing call:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -40,14 +40,19 @@ router.get('/:delivery_id', async (req, res) => {
   try {
     const { delivery_id } = req.params;
 
+    // Validate delivery_id format
+    if (!delivery_id || delivery_id === 'undefined' || delivery_id === 'null') {
+      return res.status(400).json({ success: false, error: 'Invalid delivery_id' });
+    }
+
     const callLogs = await CallLog.find({ delivery_id }).sort({
       createdAt: -1,
     });
 
-    res.json(callLogs);
+    res.json({ success: true, data: callLogs });
   } catch (error) {
     console.error('Error fetching call logs:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 

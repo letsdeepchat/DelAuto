@@ -8,6 +8,13 @@ const baseUrl = process.env.BASE_URL;
 
 let twilioClient = null;
 if (accountSid && authToken) {
+  // Validate Twilio credentials
+  if (!accountSid.startsWith('AC')) {
+    throw new Error('Invalid TWILIO_ACCOUNT_SID: must start with AC');
+  }
+  if (!authToken) {
+    throw new Error('TWILIO_AUTH_TOKEN is required');
+  }
   twilioClient = twilio(accountSid, authToken);
 }
 

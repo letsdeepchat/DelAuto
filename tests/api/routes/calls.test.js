@@ -88,6 +88,7 @@ describe('Calls API Routes Integration Tests', () => {
 
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
+        success: false,
         error: 'delivery_id is required'
       });
     });
@@ -110,6 +111,7 @@ describe('Calls API Routes Integration Tests', () => {
 
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
+        success: false,
         error: 'delivery_id is required'
       });
     });

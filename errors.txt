@@ -1,0 +1,2534 @@
+(node:15892) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15892) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+FAIL tests/performance/loadTest.test.js (54.388 s)
+  Performance Load Tests
+    API endpoint performance
+      × should handle high load on delivery listing endpoint (11137 ms)
+      × should handle concurrent call initiations (2 ms)
+      × should handle webhook bursts efficiently (6175 ms)
+    database performance
+      × should perform efficient database queries under load (1076 ms)
+      × should handle complex analytics queries efficiently (126 ms)
+    memory and resource usage
+      √ should maintain stable memory usage under sustained load (1543 ms)
+      × should handle CPU-intensive operations without blocking (5 ms)
+    concurrent user scenarios
+      × should handle multiple agents accessing deliveries simultaneously (239 ms)
+      × should handle mixed read/write operations efficiently (11 ms)
+    stress testing
+      × should gracefully handle overload conditions (12214 ms)
+      × should recover from temporary overload (5301 ms)
+    real-world scenarios
+      × should handle peak delivery creation periods (1833 ms)
+      × should handle analytics dashboard refresh during busy periods (318 ms)
+    resource cleanup
+      × should properly clean up resources after high load (8216 ms)
+
+  ● Performance Load Tests › API endpoint performance › should handle high load on delivery listing endpoint
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1400
+
+    [0m [90m 52 |[39m
+     [90m 53 |[39m       expect(result[33m.[39merrors)[33m.[39mtoBe([35m0[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 54 |[39m       expect(result[33m.[39mnon2xx)[33m.[39mtoBe([35m0[39m)[33m;[39m
+     [90m    |[39m                             [31m[1m^[22m[39m
+     [90m 55 |[39m       expect(result[33m.[39mrequests[33m.[39maverage)[33m.[39mtoBeGreaterThan([35m100[39m)[33m;[39m [90m// At least 100 req/sec[39m
+     [90m 56 |[39m       expect(result[33m.[39mlatency[33m.[39mp99)[33m.[39mtoBeLessThan([35m1000[39m)[33m;[39m [90m// 99th percentile under 1 second[39m
+     [90m 57 |[39m     }[33m,[39m [35m30000[39m)[33m;[39m[0m
+
+      at Object.toBe (performance/loadTest.test.js:54:29)
+
+  ● Performance Load Tests › API endpoint performance › should handle high load on delivery listing endpoint
+
+    querySrv ENOTFOUND _mongodb._tcp.2026
+
+
+  ● Performance Load Tests › API endpoint performance › should handle concurrent call initiations
+
+    TypeError: Cannot read properties of undefined (reading '_id')
+
+    [0m [90m 61 |[39m
+     [90m 62 |[39m       [36mconst[39m callData [33m=[39m {
+    [31m[1m>[22m[39m[90m 63 |[39m         delivery_id[33m:[39m testData[33m.[39mdelivery[33m.[39m_id[33m.[39mtoString()[33m,[39m
+     [90m    |[39m                                        [31m[1m^[22m[39m
+     [90m 64 |[39m         customer_phone[33m:[39m [32m'+1234567890'[39m[33m,[39m
+     [90m 65 |[39m         scheduled_time[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()
+     [90m 66 |[39m       }[33m;[39m[0m
+
+      at Object._id (performance/loadTest.test.js:63:40)
+
+  ● Performance Load Tests › API endpoint performance › should handle webhook bursts efficiently
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 500
+    Received:   982
+
+    [0m [90m 115 |[39m       })[33m;[39m
+     [90m 116 |[39m
+    [31m[1m>[22m[39m[90m 117 |[39m       expect(result[33m.[39mlatency[33m.[39mp99)[33m.[39mtoBeLessThan([35m500[39m)[33m;[39m [90m// Very fast webhook processing[39m
+     [90m     |[39m                                  [31m[1m^[22m[39m
+     [90m 118 |[39m       expect(result[33m.[39mthroughput[33m.[39maverage)[33m.[39mtoBeGreaterThan([35m1000000[39m)[33m;[39m [90m// High throughput[39m
+     [90m 119 |[39m     }[33m,[39m [35m20000[39m)[33m;[39m
+     [90m 120 |[39m   })[33m;[39m[0m
+
+      at Object.toBeLessThan (performance/loadTest.test.js:117:34)
+
+  ● Performance Load Tests › database performance › should perform efficient database queries under load
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+    [0m [90m 141 |[39m       [90m// All requests should succeed[39m
+     [90m 142 |[39m       results[33m.[39mforEach(result [33m=>[39m {
+    [31m[1m>[22m[39m[90m 143 |[39m         expect(result[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m     |[39m                               [31m[1m^[22m[39m
+     [90m 144 |[39m       })[33m;[39m
+     [90m 145 |[39m
+     [90m 146 |[39m       [90m// Should complete within reasonable time[39m[0m
+
+      at toBe (performance/loadTest.test.js:143:31)
+          at Array.forEach (<anonymous>)
+      at Object.forEach (performance/loadTest.test.js:142:15)
+
+  ● Performance Load Tests › database performance › should handle complex analytics queries efficiently
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+    [0m [90m 166 |[39m
+     [90m 167 |[39m       results[33m.[39mforEach(result [33m=>[39m {
+    [31m[1m>[22m[39m[90m 168 |[39m         expect(result[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m     |[39m                               [31m[1m^[22m[39m
+     [90m 169 |[39m         expect(result[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 170 |[39m       })[33m;[39m
+     [90m 171 |[39m[0m
+
+      at toBe (performance/loadTest.test.js:168:31)
+          at Array.forEach (<anonymous>)
+      at Object.forEach (performance/loadTest.test.js:167:15)
+
+  ● Performance Load Tests › memory and resource usage › should handle CPU-intensive operations without blocking
+
+    TypeError: Cannot read properties of undefined (reading '_id')
+
+    [0m [90m 212 |[39m         [33m.[39mquery({
+     [90m 213 |[39m           delivery_ids[33m:[39m [33mArray[39m[33m.[39m[36mfrom[39m({ length[33m:[39m [35m100[39m }[33m,[39m (_[33m,[39m i) [33m=>[39m
+    [31m[1m>[22m[39m[90m 214 |[39m             testData[33m.[39mdelivery[33m.[39m_id[33m.[39mtoString()
+     [90m     |[39m                               [31m[1m^[22m[39m
+     [90m 215 |[39m           )
+     [90m 216 |[39m         })[33m;[39m
+     [90m 217 |[39m[0m
+
+      at _id (performance/loadTest.test.js:214:31)
+          at Function.from (<anonymous>)
+      at Object.from (performance/loadTest.test.js:213:31)
+
+  ● Performance Load Tests › concurrent user scenarios › should handle multiple agents accessing deliveries simultaneously
+
+    TypeError: Cannot read properties of undefined (reading 'token')
+
+    [0m [90m 249 |[39m               password[33m:[39m [32m'test123'[39m
+     [90m 250 |[39m             })[33m;[39m
+    [31m[1m>[22m[39m[90m 251 |[39m           [36mreturn[39m response[33m.[39mbody[33m.[39mdata[33m.[39mtoken[33m;[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 252 |[39m         })
+     [90m 253 |[39m       )[33m;[39m
+     [90m 254 |[39m[0m
+
+      at token (performance/loadTest.test.js:251:37)
+          at async Promise.all (index 0)
+      at Object.<anonymous> (performance/loadTest.test.js:243:27)
+
+  ● Performance Load Tests › concurrent user scenarios › should handle mixed read/write operations efficiently
+
+    TypeError: Cannot read properties of undefined (reading '_id')
+
+    [0m [90m 301 |[39m       [36mconst[39m updatePromises [33m=[39m [33mArray[39m[33m.[39m[36mfrom[39m({ length[33m:[39m [35m5[39m }[33m,[39m (_[33m,[39m i) [33m=>[39m
+     [90m 302 |[39m         request(server)
+    [31m[1m>[22m[39m[90m 303 |[39m           [33m.[39mput([32m`/api/deliveries/${testData.delivery._id}`[39m)
+     [90m     |[39m                                                     [31m[1m^[22m[39m
+     [90m 304 |[39m           [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+     [90m 305 |[39m           [33m.[39msend({
+     [90m 306 |[39m             status[33m:[39m [32m'in_progress'[39m[33m,[39m[0m
+
+      at _id (performance/loadTest.test.js:303:53)
+          at Function.from (<anonymous>)
+      at Object.from (performance/loadTest.test.js:301:36)
+
+  ● Performance Load Tests › stress testing › should gracefully handle overload conditions
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 5
+    Received:   100
+
+    [0m [90m 341 |[39m       [90m// Should not have too many errors even under stress[39m
+     [90m 342 |[39m       [36mconst[39m errorRate [33m=[39m (result[33m.[39mnon2xx [33m/[39m result[33m.[39mrequests[33m.[39mtotal) [33m*[39m [35m100[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 343 |[39m       expect(errorRate)[33m.[39mtoBeLessThan([35m5[39m)[33m;[39m [90m// Less than 5% error rate[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m 344 |[39m
+     [90m 345 |[39m       [90m// Should maintain reasonable response times[39m
+     [90m 346 |[39m       expect(result[33m.[39mlatency[33m.[39mp50)[33m.[39mtoBeLessThan([35m2000[39m)[33m;[39m [90m// Median under 2 seconds[39m[0m
+
+      at Object.toBeLessThan (performance/loadTest.test.js:343:25)
+
+  ● Performance Load Tests › stress testing › should recover from temporary overload
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+    [0m [90m 366 |[39m         [33m.[39mtimeout([35m5000[39m)[33m;[39m
+     [90m 367 |[39m
+    [31m[1m>[22m[39m[90m 368 |[39m       expect(testRequest[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m     |[39m                                  [31m[1m^[22m[39m
+     [90m 369 |[39m
+     [90m 370 |[39m       [90m// Wait for load test to complete[39m
+     [90m 371 |[39m       [36mconst[39m loadResult [33m=[39m [36mawait[39m heavyLoadPromise[33m;[39m[0m
+
+      at Object.toBe (performance/loadTest.test.js:368:34)
+
+  ● Performance Load Tests › real-world scenarios › should handle peak delivery creation periods
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 45
+    Received:   0
+
+    [0m [90m 403 |[39m       [90m// All deliveries should be created successfully[39m
+     [90m 404 |[39m       [36mconst[39m successCount [33m=[39m results[33m.[39mfilter(r [33m=>[39m r[33m.[39mstatus [33m===[39m [35m201[39m)[33m.[39mlength[33m;[39m
+    [31m[1m>[22m[39m[90m 405 |[39m       expect(successCount)[33m.[39mtoBeGreaterThan([35m45[39m)[33m;[39m [90m// 90% success rate[39m
+     [90m     |[39m                            [31m[1m^[22m[39m
+     [90m 406 |[39m
+     [90m 407 |[39m       [90m// Should complete within reasonable time[39m
+     [90m 408 |[39m       expect(duration)[33m.[39mtoBeLessThan([35m15000[39m)[33m;[39m [90m// 15 seconds[39m[0m
+
+      at Object.toBeGreaterThan (performance/loadTest.test.js:405:28)
+
+  ● Performance Load Tests › real-world scenarios › should handle analytics dashboard refresh during busy periods
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+    [0m [90m 428 |[39m       [90m// All dashboard requests should succeed[39m
+     [90m 429 |[39m       results[33m.[39mforEach(result [33m=>[39m {
+    [31m[1m>[22m[39m[90m 430 |[39m         expect(result[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m     |[39m                               [31m[1m^[22m[39m
+     [90m 431 |[39m         expect(result[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 432 |[39m       })[33m;[39m
+     [90m 433 |[39m[0m
+
+      at toBe (performance/loadTest.test.js:430:31)
+          at Array.forEach (<anonymous>)
+      at Object.forEach (performance/loadTest.test.js:429:15)
+
+  ● Performance Load Tests › resource cleanup › should properly clean up resources after high load
+
+    TypeError: Cannot read properties of undefined (reading 'database')
+
+    [0m [90m 463 |[39m
+     [90m 464 |[39m       [90m// Connection counts should return to baseline[39m
+    [31m[1m>[22m[39m[90m 465 |[39m       [36mconst[39m initialConnections [33m=[39m initialStats[33m.[39mbody[33m.[39mdata[33m.[39mdatabase[33m.[39mconnections[33m;[39m
+     [90m     |[39m                                                         [31m[1m^[22m[39m
+     [90m 466 |[39m       [36mconst[39m finalConnections [33m=[39m finalStats[33m.[39mbody[33m.[39mdata[33m.[39mdatabase[33m.[39mconnections[33m;[39m
+     [90m 467 |[39m       
+     [90m 468 |[39m       expect([33mMath[39m[33m.[39mabs(finalConnections [33m-[39m initialConnections))[33m.[39mtoBeLessThan([35m10[39m)[33m;[39m[0m
+
+      at Object.database (performance/loadTest.test.js:465:57)
+
+(node:15892) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:15892) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+FAIL tests/security/security.test.js (29.103 s)
+  Security Tests
+    Authentication Security
+      × should reject requests without authentication token (111 ms)
+      √ should reject malformed authorization headers (180 ms)
+      √ should reject expired tokens (40 ms)
+      √ should reject tampered tokens (31 ms)
+      √ should implement proper password hashing (1481 ms)
+      √ should enforce strong password requirements (201 ms)
+      √ should prevent brute force attacks with rate limiting (10184 ms)
+    Authorization Security
+      √ should enforce role-based access control (58 ms)
+      × should prevent agents from accessing other agents data (80 ms)
+      × should validate resource ownership (3 ms)
+    Input Validation Security
+      √ should prevent SQL injection attempts (124 ms)
+      × should prevent NoSQL injection attempts (31 ms)
+      √ should prevent XSS attacks (138 ms)
+      × should validate file upload restrictions (55 ms)
+      × should prevent path traversal attacks (51 ms)
+    API Security Headers
+      × should include security headers in responses (60 ms)
+      × should not expose sensitive server information (52 ms)
+      √ should implement proper CORS policy (22 ms)
+    Webhook Security
+      × should validate Twilio webhook signatures (33 ms)
+      × should prevent webhook replay attacks (10062 ms)
+    Rate Limiting Security
+      √ should implement IP-based rate limiting (2605 ms)
+      × should implement user-based rate limiting (883 ms)
+      √ should implement endpoint-specific rate limits (328 ms)
+    Data Protection
+      × should not expose sensitive data in error messages (35 ms)
+      × should mask sensitive fields in API responses (23 ms)
+      × should implement proper data sanitization (20 ms)
+    Session Security
+      × should implement secure session management (23 ms)
+      × should invalidate tokens on logout (29 ms)
+    Error Handling Security
+      × should not leak stack traces in production (24 ms)
+      √ should handle database errors securely (91 ms)
+    Content Security
+      × should implement proper content type validation (52 ms)
+      × should limit request size (127 ms)
+    Timing Attack Prevention
+      √ should use constant-time comparison for authentication (34 ms)
+
+  ● Security Tests › Authentication Security › should reject requests without authentication token
+
+    listen EADDRINUSE: address already in use :::3001
+
+    [0m [90m 360 |[39m
+     [90m 361 |[39m [90m// Start server[39m
+    [31m[1m>[22m[39m[90m 362 |[39m server[33m.[39mlisten([33mPORT[39m[33m,[39m () [33m=>[39m {
+     [90m     |[39m        [31m[1m^[22m[39m
+     [90m 363 |[39m   logger[33m.[39minfo([32m`Server running on port ${PORT}`[39m)[33m;[39m
+     [90m 364 |[39m   logger[33m.[39minfo([32m`Health check available at: http://localhost:${PORT}/health`[39m)[33m;[39m
+     [90m 365 |[39m   logger[33m.[39minfo([32m`Metrics available at: http://localhost:${PORT}/metrics`[39m)[33m;[39m[0m
+
+      at Object.listen (../src/index.js:362:8)
+      at Object.require (security/security.test.js:5:17)
+
+  ● Security Tests › Authentication Security › should reject requests without authentication token
+
+    querySrv ENOTFOUND _mongodb._tcp.2026
+
+
+  ● Security Tests › Authorization Security › should prevent agents from accessing other agents data
+
+    expected 403 "Forbidden", got 404 "Not Found"
+
+    [0m [90m 166 |[39m         [33m.[39m[36mget[39m([32m'/api/agents/agent2/deliveries'[39m)
+     [90m 167 |[39m         [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${agent1Token}`[39m)
+    [31m[1m>[22m[39m[90m 168 |[39m         [33m.[39mexpect([35m403[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 169 |[39m     })[33m;[39m
+     [90m 170 |[39m
+     [90m 171 |[39m     it([32m'should validate resource ownership'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.expect (security/security.test.js:168:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Authorization Security › should validate resource ownership
+
+    TypeError: Cannot read properties of undefined (reading '_id')
+
+    [0m [90m 178 |[39m       [90m// Try to access delivery not assigned to this agent[39m
+     [90m 179 |[39m       [36mawait[39m request(app)
+    [31m[1m>[22m[39m[90m 180 |[39m         [33m.[39m[36mget[39m([32m`/api/deliveries/${testData.delivery._id}`[39m)
+     [90m     |[39m                                                   [31m[1m^[22m[39m
+     [90m 181 |[39m         [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${agentToken}`[39m)
+     [90m 182 |[39m         [33m.[39mexpect([35m403[39m)[33m;[39m
+     [90m 183 |[39m     })[33m;[39m[0m
+
+      at Object._id (security/security.test.js:180:51)
+
+  ● Security Tests › Input Validation Security › should prevent NoSQL injection attempts
+
+    expected 400 "Bad Request", got 401 "Unauthorized"
+
+    [0m [90m 223 |[39m             address[33m:[39m [32m'123 Test Street'[39m
+     [90m 224 |[39m           })
+    [31m[1m>[22m[39m[90m 225 |[39m           [33m.[39mexpect([35m400[39m)[33m;[39m [90m// Should be rejected by validation[39m
+     [90m     |[39m            [31m[1m^[22m[39m
+     [90m 226 |[39m       }
+     [90m 227 |[39m     })[33m;[39m
+     [90m 228 |[39m[0m
+
+      at Object.expect (security/security.test.js:225:12)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Input Validation Security › should validate file upload restrictions
+
+    expected 400 "Bad Request", got 404 "Not Found"
+
+    [0m [90m 265 |[39m         [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${validToken}`[39m)
+     [90m 266 |[39m         [33m.[39mattach([32m'file'[39m[33m,[39m maliciousFile[33m,[39m [32m'malicious.php'[39m)
+    [31m[1m>[22m[39m[90m 267 |[39m         [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 268 |[39m     })[33m;[39m
+     [90m 269 |[39m
+     [90m 270 |[39m     it([32m'should prevent path traversal attacks'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.expect (security/security.test.js:267:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Input Validation Security › should prevent path traversal attacks
+
+    expected 400 "Bad Request", got 404 "Not Found"
+
+    [0m [90m 280 |[39m           [33m.[39m[36mget[39m([32m`/api/recordings/${path}`[39m)
+     [90m 281 |[39m           [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${validToken}`[39m)
+    [31m[1m>[22m[39m[90m 282 |[39m           [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m     |[39m            [31m[1m^[22m[39m
+     [90m 283 |[39m       }
+     [90m 284 |[39m     })[33m;[39m
+     [90m 285 |[39m   })[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:282:12)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › API Security Headers › should include security headers in responses
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 289 |[39m       [36mconst[39m response [33m=[39m [36mawait[39m request(app)
+     [90m 290 |[39m         [33m.[39m[36mget[39m([32m'/health'[39m)
+    [31m[1m>[22m[39m[90m 291 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 292 |[39m
+     [90m 293 |[39m       expect(response[33m.[39mheaders)[33m.[39mtoHaveProperty([32m'x-content-type-options'[39m)[33m;[39m
+     [90m 294 |[39m     })[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:291:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › API Security Headers › should not expose sensitive server information
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 297 |[39m       [36mconst[39m response [33m=[39m [36mawait[39m request(app)
+     [90m 298 |[39m         [33m.[39m[36mget[39m([32m'/health'[39m)
+    [31m[1m>[22m[39m[90m 299 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 300 |[39m
+     [90m 301 |[39m       expect(response[33m.[39mheaders[[32m'server'[39m])[33m.[39mtoBeUndefined()[33m;[39m
+     [90m 302 |[39m     })[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:299:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Webhook Security › should validate Twilio webhook signatures
+
+    expected 401 "Unauthorized", got 400 "Bad Request"
+
+    [0m [90m 327 |[39m         [33m.[39mpost([32m'/api/webhooks/call-status'[39m)
+     [90m 328 |[39m         [33m.[39msend(webhookData)
+    [31m[1m>[22m[39m[90m 329 |[39m         [33m.[39mexpect([35m401[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 330 |[39m
+     [90m 331 |[39m       [90m// Request with invalid signature[39m
+     [90m 332 |[39m       [36mawait[39m request(app)[0m
+
+      at Object.expect (security/security.test.js:329:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Webhook Security › should prevent webhook replay attacks
+
+    expected 400 "Bad Request", got 500 "Internal Server Error"
+
+    [0m [90m 362 |[39m         [33m.[39m[36mset[39m([32m'X-Twilio-Request-Timestamp'[39m[33m,[39m oldTimestamp[33m.[39mtoString())
+     [90m 363 |[39m         [33m.[39msend(webhookData)
+    [31m[1m>[22m[39m[90m 364 |[39m         [33m.[39mexpect([35m400[39m)
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 365 |[39m         [33m.[39mexpect(res [33m=>[39m {
+     [90m 366 |[39m           expect(res[33m.[39mbody[33m.[39merror)[33m.[39mtoContain([32m'expired'[39m)[33m;[39m
+     [90m 367 |[39m           expect(res[33m.[39mbody[33m.[39merror)[33m.[39mtoContain([32m'timestamp'[39m)[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:364:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Rate Limiting Security › should implement user-based rate limiting
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "x-ratelimit-limit"
+    Received path: []
+
+    Received value: {"access-control-allow-credentials": "true", "access-control-allow-origin": "http://localhost:3001", "connection": "close", "content-length": "55", "content-security-policy": "default-src 'self';style-src 'self' 'unsafe-inline';script-src 'self';img-src 'self' data: https:;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests", "content-type": "text/html; charset=utf-8", "cross-origin-opener-policy": "same-origin", "cross-origin-resource-policy": "same-origin", "date": "Sun, 26 Oct 2025 11:51:31 GMT", "etag": "W/\"37-GXzJfQEBpCBb0XTpo5yLKb1Kg+0\"", "origin-agent-cluster": "?1", "ratelimit-limit": "100", "ratelimit-policy": "100;w=900", "ratelimit-remaining": "0", "ratelimit-reset": "874", "referrer-policy": "no-referrer", "retry-after": "874", "strict-transport-security": "max-age=31536000; includeSubDomains", "vary": "Origin, Accept-Encoding", "x-content-type-options": "nosniff", "x-dns-prefetch-control": "off", "x-download-options": "noopen", "x-frame-options": "SAMEORIGIN", "x-permitted-cross-domain-policies": "none", "x-xss-protection": "0"}
+
+    [0m [90m 415 |[39m       [36mconst[39m limitedResponse [33m=[39m rateLimited[[35m0[39m][33m;[39m
+     [90m 416 |[39m       [36mif[39m (limitedResponse [33m&&[39m limitedResponse[33m.[39mheaders) {
+    [31m[1m>[22m[39m[90m 417 |[39m         expect(limitedResponse[33m.[39mheaders)[33m.[39mtoHaveProperty([32m'x-ratelimit-limit'[39m)[33m;[39m
+     [90m     |[39m                                         [31m[1m^[22m[39m
+     [90m 418 |[39m         expect(limitedResponse[33m.[39mheaders)[33m.[39mtoHaveProperty([32m'x-ratelimit-remaining'[39m)[33m;[39m
+     [90m 419 |[39m         expect(limitedResponse[33m.[39mheaders)[33m.[39mtoHaveProperty([32m'retry-after'[39m)[33m;[39m
+     [90m 420 |[39m       }[0m
+
+      at Object.toHaveProperty (security/security.test.js:417:41)
+
+  ● Security Tests › Data Protection › should not expose sensitive data in error messages
+
+    expected 401 "Unauthorized", got 429 "Too Many Requests"
+
+    [0m [90m 448 |[39m           password[33m:[39m [32m'wrongpassword'[39m
+     [90m 449 |[39m         })
+    [31m[1m>[22m[39m[90m 450 |[39m         [33m.[39mexpect([35m401[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 451 |[39m
+     [90m 452 |[39m       [90m// Ensure error message doesn't leak sensitive information[39m
+     [90m 453 |[39m       expect(response[33m.[39mbody[33m.[39merror)[33m.[39mnot[33m.[39mtoContain([32m'password'[39m)[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:450:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Data Protection › should mask sensitive fields in API responses
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+    [0m [90m 469 |[39m         [33m.[39m[36mget[39m([32m'/api/agents/profile'[39m)
+     [90m 470 |[39m         [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${validToken}`[39m)
+    [31m[1m>[22m[39m[90m 471 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 472 |[39m
+     [90m 473 |[39m       [90m// Verify sensitive fields are not exposed[39m
+     [90m 474 |[39m       expect(response[33m.[39mbody[33m.[39mdata[33m.[39mpassword)[33m.[39mtoBeUndefined()[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:471:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Data Protection › should implement proper data sanitization
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+    [0m [90m 494 |[39m         [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${validToken}`[39m)
+     [90m 495 |[39m         [33m.[39mquery({ limit[33m:[39m [35m1[39m })
+    [31m[1m>[22m[39m[90m 496 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 497 |[39m
+     [90m 498 |[39m       [36mif[39m (response[33m.[39mbody[33m.[39mdata [33m&&[39m response[33m.[39mbody[33m.[39mdata[33m.[39mdeliveries [33m&&[39m response[33m.[39mbody[33m.[39mdata[33m.[39mdeliveries[33m.[39mlength [33m>[39m [35m0[39m) {
+     [90m 499 |[39m         [36mconst[39m delivery [33m=[39m response[33m.[39mbody[33m.[39mdata[33m.[39mdeliveries[[35m0[39m][33m;[39m[0m
+
+      at Object.expect (security/security.test.js:496:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Session Security › should implement secure session management
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+    [0m [90m 529 |[39m           password[33m:[39m [32m'test123'[39m
+     [90m 530 |[39m         })
+    [31m[1m>[22m[39m[90m 531 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 532 |[39m
+     [90m 533 |[39m       [36mconst[39m token [33m=[39m loginResponse[33m.[39mbody[33m.[39mdata[33m.[39mtoken[33m;[39m
+     [90m 534 |[39m[0m
+
+      at Object.expect (security/security.test.js:531:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Session Security › should invalidate tokens on logout
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+    [0m [90m 565 |[39m           password[33m:[39m [32m'test123'[39m
+     [90m 566 |[39m         })
+    [31m[1m>[22m[39m[90m 567 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 568 |[39m
+     [90m 569 |[39m       [36mconst[39m token [33m=[39m loginResponse[33m.[39mbody[33m.[39mdata[33m.[39mtoken[33m;[39m
+     [90m 570 |[39m[0m
+
+      at Object.expect (security/security.test.js:567:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Error Handling Security › should not leak stack traces in production
+
+    expected 404 "Not Found", got 429 "Too Many Requests"
+
+    [0m [90m 603 |[39m       [36mconst[39m response [33m=[39m [36mawait[39m request(app)
+     [90m 604 |[39m         [33m.[39m[36mget[39m([32m'/api/nonexistent-endpoint'[39m)
+    [31m[1m>[22m[39m[90m 605 |[39m         [33m.[39mexpect([35m404[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 606 |[39m
+     [90m 607 |[39m       [90m// In production, should not expose stack traces or internal error details[39m
+     [90m 608 |[39m       expect(response[33m.[39mbody[33m.[39mstack)[33m.[39mtoBeUndefined()[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:605:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Content Security › should implement proper content type validation
+
+    expected 400 "Bad Request", got 429 "Too Many Requests"
+
+    [0m [90m 645 |[39m         [33m.[39m[36mset[39m([32m'Content-Type'[39m[33m,[39m [32m'application/xml'[39m)
+     [90m 646 |[39m         [33m.[39msend([32m'<xml><test>data</test></xml>'[39m)
+    [31m[1m>[22m[39m[90m 647 |[39m         [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 648 |[39m
+     [90m 649 |[39m       expect(xmlResponse[33m.[39mbody[33m.[39merror)[33m.[39mtoContain([32m'content-type'[39m)[33m;[39m
+     [90m 650 |[39m       expect(xmlResponse[33m.[39mbody[33m.[39merror)[33m.[39mtoMatch([35m/json|xml|invalid/i[39m)[33m;[39m[0m
+
+      at Object.expect (security/security.test.js:647:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests › Content Security › should limit request size
+
+    read ECONNRESET
+
+
+FAIL tests/services/twilioService.test.js (6.515 s)
+  Twilio Service - Integration Tests
+    makeCustomerCall
+      × should handle makeCustomerCall when Twilio configured (388 ms)
+      √ should throw error when Twilio client is not configured (427 ms)
+      × should handle invalid phone number gracefully (367 ms)
+      × should handle service errors gracefully (551 ms)
+      × should validate service configuration (375 ms)
+    module exports
+      √ should export makeCustomerCall function (480 ms)
+      × should handle twilioClient configuration (529 ms)
+      √ should handle missing configuration gracefully (476 ms)
+      × should handle makeCustomerCall when Twilio configured (617 ms)
+      × should handle invalid phone number gracefully (438 ms)
+      × should handle service errors gracefully (414 ms)
+      × should validate service configuration (424 ms)
+      × should handle twilioClient configuration (456 ms)
+      √ should handle missing configuration gracefully (362 ms)
+
+  ● Twilio Service - Integration Tests › makeCustomerCall › should handle makeCustomerCall when Twilio configured
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:49:29)
+
+  ● Twilio Service - Integration Tests › makeCustomerCall › should handle invalid phone number gracefully
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:91:29)
+
+  ● Twilio Service - Integration Tests › makeCustomerCall › should handle service errors gracefully
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:115:29)
+
+  ● Twilio Service - Integration Tests › makeCustomerCall › should validate service configuration
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:130:29)
+
+  ● Twilio Service - Integration Tests › module exports › should handle twilioClient configuration
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:151:29)
+
+  ● Twilio Service - Integration Tests › module exports › should handle makeCustomerCall when Twilio configured
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:174:29)
+
+  ● Twilio Service - Integration Tests › module exports › should handle invalid phone number gracefully
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:196:29)
+
+  ● Twilio Service - Integration Tests › module exports › should handle service errors gracefully
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:218:29)
+
+  ● Twilio Service - Integration Tests › module exports › should validate service configuration
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:232:29)
+
+  ● Twilio Service - Integration Tests › module exports › should handle twilioClient configuration
+
+    accountSid must start with AC
+
+    [0m [90m  9 |[39m [36mlet[39m twilioClient [33m=[39m [36mnull[39m[33m;[39m
+     [90m 10 |[39m [36mif[39m (accountSid [33m&&[39m authToken) {
+    [31m[1m>[22m[39m[90m 11 |[39m   twilioClient [33m=[39m twilio(accountSid[33m,[39m authToken)[33m;[39m
+     [90m    |[39m                  [31m[1m^[22m[39m
+     [90m 12 |[39m }
+     [90m 13 |[39m
+     [90m 14 |[39m [36masync[39m [36mfunction[39m makeCustomerCall(delivery) {[0m
+
+      at Twilio.setAccountSid (../node_modules/twilio/lib/base/BaseTwilio.js:83:23)
+      at new Client (../node_modules/twilio/lib/base/BaseTwilio.js:45:18)
+      at new Twilio (../node_modules/twilio/lib/rest/Twilio.js:33:9)
+      at TwilioSDK (../node_modules/twilio/lib/index.js:55:12)
+      at Object.twilio (../src/services/twilioService.js:11:18)
+      at Object.require (services/twilioService.test.js:245:29)
+
+FAIL tests/api/routes/webhooks.test.js
+  Webhooks API Routes
+    POST /api/webhooks/voice
+      × should handle voice webhook and return TwiML (91 ms)
+      × should include delivery information in voice prompt (27 ms)
+      × should handle missing delivery_id parameter (31 ms)
+      × should handle non-existent delivery (26 ms)
+      × should support different languages in TwiML (30 ms)
+      × should validate Twilio webhook signature (56 ms)
+      × should handle webhook validation errors (37 ms)
+      × should include proper recording settings in TwiML (38 ms)
+      × should handle customer callback scenarios (35 ms)
+    POST /api/webhooks/recording
+      × should process recording webhook successfully (26 ms)
+      × should upload recording to storage (25 ms)
+      × should trigger AI transcription and analysis (31 ms)
+      × should notify assigned agent (28 ms)
+      × should emit real-time socket notification (26 ms)
+      × should handle missing RecordingSid (27 ms)
+      × should handle recording upload failures (24 ms)
+      × should handle AI service failures gracefully (22 ms)
+      × should update delivery status after recording processed (25 ms)
+      × should handle duplicate recording webhooks (24 ms)
+      × should validate recording duration (26 ms)
+      × should handle transcription webhook separately (25 ms)
+    POST /api/webhooks/call-status
+      × should update call status in database (24 ms)
+      × should handle different call statuses (28 ms)
+      × should trigger retry logic for failed calls (23 ms)
+      × should handle no-answer scenarios (24 ms)
+      × should update delivery status based on call outcome (26 ms)
+      × should handle missing CallSid (23 ms)
+      × should track call quality metrics (24 ms)
+    POST /api/webhooks/sms
+      × should process incoming SMS responses (27 ms)
+      × should link SMS to delivery based on phone number (24 ms)
+      × should handle SMS with delivery keywords (24 ms)
+      × should respond with automated SMS when appropriate (25 ms)
+      × should handle opt-out requests (23 ms)
+    Webhook Security
+      × should validate Twilio webhook signatures (32 ms)
+      × should handle webhook validation in development mode (23 ms)
+      × should prevent webhook replay attacks (24 ms)
+      × should rate limit webhook endpoints (312 ms)
+    Error Handling
+      × should handle database connection errors (42 ms)
+      × should handle malformed webhook data (26 ms)
+      × should handle webhook timeouts gracefully (26 ms)
+      × should log webhook processing errors (26 ms)
+    Idempotency
+      × should handle duplicate webhook deliveries (23 ms)
+      × should use idempotency keys for webhook processing (23 ms)
+    Monitoring and Metrics
+      × should track webhook processing times (26 ms)
+      × should track webhook success/failure rates (25 ms)
+      × should emit metrics events for monitoring (24 ms)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should handle voice webhook and return TwiML
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 86 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 87 |[39m         [33m.[39msend(voiceWebhookData)
+    [31m[1m>[22m[39m[90m 88 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m    |[39m          [31m[1m^[22m[39m
+     [90m 89 |[39m
+     [90m 90 |[39m       expect(response[33m.[39mheaders[[32m'content-type'[39m])[33m.[39mtoContain([32m'text/xml'[39m)[33m;[39m
+     [90m 91 |[39m       expect(response[33m.[39mtext)[33m.[39mtoContain([32m'<Response>'[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:88:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should include delivery information in voice prompt
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m  99 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 100 |[39m         [33m.[39msend(voiceWebhookData)
+    [31m[1m>[22m[39m[90m 101 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 102 |[39m
+     [90m 103 |[39m       expect(response[33m.[39mtext)[33m.[39mtoContain([32m'PKG123456'[39m)[33m;[39m
+     [90m 104 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:101:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should handle missing delivery_id parameter
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+    [0m [90m 110 |[39m         [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m 111 |[39m
+    [31m[1m>[22m[39m[90m 112 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 113 |[39m       expect(response[33m.[39mbody[33m.[39merror)[33m.[39mtoContain([32m'delivery_id'[39m)[33m;[39m
+     [90m 114 |[39m     })[33m;[39m
+     [90m 115 |[39m[0m
+
+      at Object.toBe (api/routes/webhooks.test.js:112:37)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should handle non-existent delivery
+
+    expected 404 "Not Found", got 400 "Bad Request"
+
+    [0m [90m 119 |[39m         [33m.[39mquery({ delivery_id[33m:[39m [32m'non-existent-id'[39m })
+     [90m 120 |[39m         [33m.[39msend(voiceWebhookData)
+    [31m[1m>[22m[39m[90m 121 |[39m         [33m.[39mexpect([35m404[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 122 |[39m
+     [90m 123 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m 124 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:121:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should support different languages in TwiML
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 132 |[39m         })
+     [90m 133 |[39m         [33m.[39msend(voiceWebhookData)
+    [31m[1m>[22m[39m[90m 134 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 135 |[39m
+     [90m 136 |[39m       expect(response[33m.[39mtext)[33m.[39mtoContain([32m'voice="alice"'[39m)[33m;[39m
+     [90m 137 |[39m       [90m// Spanish text would be included in actual implementation[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:134:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should validate Twilio webhook signature
+
+    expected 401 "Unauthorized", got 400 "Bad Request"
+
+    [0m [90m 145 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 146 |[39m         [33m.[39msend(voiceWebhookData)
+    [31m[1m>[22m[39m[90m 147 |[39m         [33m.[39mexpect([35m401[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 148 |[39m
+     [90m 149 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m 150 |[39m       expect(response[33m.[39mbody[33m.[39merror)[33m.[39mtoContain([32m'signature'[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:147:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should handle webhook validation errors
+
+    expected 500 "Internal Server Error", got 400 "Bad Request"
+
+    [0m [90m 158 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 159 |[39m         [33m.[39msend(voiceWebhookData)
+    [31m[1m>[22m[39m[90m 160 |[39m         [33m.[39mexpect([35m500[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 161 |[39m
+     [90m 162 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m 163 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:160:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should include proper recording settings in TwiML
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 168 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 169 |[39m         [33m.[39msend(voiceWebhookData)
+    [31m[1m>[22m[39m[90m 170 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 171 |[39m
+     [90m 172 |[39m       expect(response[33m.[39mtext)[33m.[39mtoContain([32m'transcribe="true"'[39m)[33m;[39m
+     [90m 173 |[39m       expect(response[33m.[39mtext)[33m.[39mtoContain([32m'maxLength="60"'[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:170:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/voice › should handle customer callback scenarios
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 186 |[39m         })
+     [90m 187 |[39m         [33m.[39msend(callbackData)
+    [31m[1m>[22m[39m[90m 188 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 189 |[39m
+     [90m 190 |[39m       expect(response[33m.[39mtext)[33m.[39mtoContain([32m'<Say>'[39m)[33m;[39m
+     [90m 191 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:188:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should process recording webhook successfully
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 202 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 203 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 204 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 205 |[39m
+     [90m 206 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 207 |[39m       expect(mockDb[33m.[39mcollection()[33m.[39minsertOne[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:204:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should upload recording to storage
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 212 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 213 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 214 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 215 |[39m
+     [90m 216 |[39m       expect(storageStub[33m.[39muploadRecording[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 217 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:214:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should trigger AI transcription and analysis
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 221 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 222 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 223 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 224 |[39m
+     [90m 225 |[39m       expect(aiServiceStub[33m.[39mtranscribeAudio[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 226 |[39m       expect(aiServiceStub[33m.[39manalyzeTranscription[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:223:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should notify assigned agent
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 231 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 232 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 233 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 234 |[39m
+     [90m 235 |[39m       expect(pushServiceStub[33m.[39mnotifyAgent[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 236 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:233:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should emit real-time socket notification
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 240 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 241 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 242 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 243 |[39m
+     [90m 244 |[39m       expect(socketStub[33m.[39mto[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 245 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:242:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should handle missing RecordingSid
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+    [0m [90m 254 |[39m         [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m 255 |[39m
+    [31m[1m>[22m[39m[90m 256 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 257 |[39m     })[33m;[39m
+     [90m 258 |[39m
+     [90m 259 |[39m     it([32m'should handle recording upload failures'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.toBe (api/routes/webhooks.test.js:256:37)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should handle recording upload failures
+
+    expected 500 "Internal Server Error", got 400 "Bad Request"
+
+    [0m [90m 263 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 264 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 265 |[39m         [33m.[39mexpect([35m500[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 266 |[39m
+     [90m 267 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m 268 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:265:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should handle AI service failures gracefully
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 274 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 275 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 276 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m [90m// Should still succeed[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 277 |[39m
+     [90m 278 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 279 |[39m       expect(response[33m.[39mbody[33m.[39mwarning)[33m.[39mtoContain([32m'AI processing failed'[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:276:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should update delivery status after recording processed
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 284 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 285 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 286 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 287 |[39m
+     [90m 288 |[39m       expect(mockDb[33m.[39mcollection()[33m.[39mupdateOne[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 289 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:286:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should handle duplicate recording webhooks
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 295 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 296 |[39m         [33m.[39msend(recordingWebhookData)
+    [31m[1m>[22m[39m[90m 297 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 298 |[39m
+     [90m 299 |[39m       expect(response[33m.[39mbody[33m.[39mmessage)[33m.[39mtoContain([32m'already processed'[39m)[33m;[39m
+     [90m 300 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:297:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should validate recording duration
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+    [0m [90m 311 |[39m         [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m 312 |[39m
+    [31m[1m>[22m[39m[90m 313 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 314 |[39m       expect(response[33m.[39mbody[33m.[39merror)[33m.[39mtoContain([32m'duration'[39m)[33m;[39m
+     [90m 315 |[39m     })[33m;[39m
+     [90m 316 |[39m[0m
+
+      at Object.toBe (api/routes/webhooks.test.js:313:37)
+
+  ● Webhooks API Routes › POST /api/webhooks/recording › should handle transcription webhook separately
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 326 |[39m         [33m.[39mpost([32m'/api/webhooks/transcription'[39m)
+     [90m 327 |[39m         [33m.[39msend(transcriptionData)
+    [31m[1m>[22m[39m[90m 328 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 329 |[39m
+     [90m 330 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 331 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:328:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/call-status › should update call status in database
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 346 |[39m         [33m.[39mpost([32m'/api/webhooks/call-status'[39m)
+     [90m 347 |[39m         [33m.[39msend(callStatusData)
+    [31m[1m>[22m[39m[90m 348 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 349 |[39m
+     [90m 350 |[39m       expect(mockDb[33m.[39mcollection()[33m.[39mupdateOne[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 351 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:348:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/call-status › should handle different call statuses
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 360 |[39m           [33m.[39mpost([32m'/api/webhooks/call-status'[39m)
+     [90m 361 |[39m           [33m.[39msend(statusData)
+    [31m[1m>[22m[39m[90m 362 |[39m           [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m            [31m[1m^[22m[39m
+     [90m 363 |[39m
+     [90m 364 |[39m         expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 365 |[39m       }[0m
+
+      at Object.expect (api/routes/webhooks.test.js:362:12)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/call-status › should trigger retry logic for failed calls
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 372 |[39m         [33m.[39mpost([32m'/api/webhooks/call-status'[39m)
+     [90m 373 |[39m         [33m.[39msend(failedCallData)
+    [31m[1m>[22m[39m[90m 374 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 375 |[39m
+     [90m 376 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 377 |[39m       [90m// Verify retry was scheduled[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:374:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/call-status › should handle no-answer scenarios
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 384 |[39m         [33m.[39mpost([32m'/api/webhooks/call-status'[39m)
+     [90m 385 |[39m         [33m.[39msend(noAnswerData)
+    [31m[1m>[22m[39m[90m 386 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 387 |[39m
+     [90m 388 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 389 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:386:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/call-status › should update delivery status based on call outcome
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 395 |[39m         [33m.[39mpost([32m'/api/webhooks/call-status'[39m)
+     [90m 396 |[39m         [33m.[39msend(completedCallData)
+    [31m[1m>[22m[39m[90m 397 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 398 |[39m
+     [90m 399 |[39m       expect(mockDb[33m.[39mcollection()[33m.[39mupdateOne[33m.[39mcalledTwice)[33m.[39mtoBe([36mtrue[39m)[33m;[39m [90m// Call log + delivery[39m
+     [90m 400 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:397:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/call-status › should handle missing CallSid
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+    [0m [90m 409 |[39m         [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m 410 |[39m
+    [31m[1m>[22m[39m[90m 411 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 412 |[39m     })[33m;[39m
+     [90m 413 |[39m
+     [90m 414 |[39m     it([32m'should track call quality metrics'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.toBe (api/routes/webhooks.test.js:411:37)
+
+  ● Webhooks API Routes › POST /api/webhooks/call-status › should track call quality metrics
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 422 |[39m         [33m.[39mpost([32m'/api/webhooks/call-status'[39m)
+     [90m 423 |[39m         [33m.[39msend(qualityData)
+    [31m[1m>[22m[39m[90m 424 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 425 |[39m
+     [90m 426 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 427 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:424:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/sms › should process incoming SMS responses
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 441 |[39m         [33m.[39mpost([32m'/api/webhooks/sms'[39m)
+     [90m 442 |[39m         [33m.[39msend(smsWebhookData)
+    [31m[1m>[22m[39m[90m 443 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 444 |[39m
+     [90m 445 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 446 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:443:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/sms › should link SMS to delivery based on phone number
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 455 |[39m         [33m.[39mpost([32m'/api/webhooks/sms'[39m)
+     [90m 456 |[39m         [33m.[39msend(smsWebhookData)
+    [31m[1m>[22m[39m[90m 457 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 458 |[39m
+     [90m 459 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 460 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:457:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/sms › should handle SMS with delivery keywords
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 469 |[39m         [33m.[39mpost([32m'/api/webhooks/sms'[39m)
+     [90m 470 |[39m         [33m.[39msend(keywordSMS)
+    [31m[1m>[22m[39m[90m 471 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 472 |[39m
+     [90m 473 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 474 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:471:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/sms › should respond with automated SMS when appropriate
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 478 |[39m         [33m.[39mpost([32m'/api/webhooks/sms'[39m)
+     [90m 479 |[39m         [33m.[39msend(smsWebhookData)
+    [31m[1m>[22m[39m[90m 480 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 481 |[39m
+     [90m 482 |[39m       expect(response[33m.[39mheaders[[32m'content-type'[39m])[33m.[39mtoContain([32m'text/xml'[39m)[33m;[39m
+     [90m 483 |[39m       expect(response[33m.[39mtext)[33m.[39mtoContain([32m'<Response>'[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:480:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › POST /api/webhooks/sms › should handle opt-out requests
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 493 |[39m         [33m.[39mpost([32m'/api/webhooks/sms'[39m)
+     [90m 494 |[39m         [33m.[39msend(optOutSMS)
+    [31m[1m>[22m[39m[90m 495 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 496 |[39m
+     [90m 497 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 498 |[39m       [90m// Verify customer was opted out[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:495:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Webhook Security › should validate Twilio webhook signatures
+
+    expected 401 "Unauthorized", got 200 "OK"
+
+    [0m [90m 510 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 511 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mvoice)
+    [31m[1m>[22m[39m[90m 512 |[39m         [33m.[39mexpect([35m401[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 513 |[39m
+     [90m 514 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m 515 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:512:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Webhook Security › should handle webhook validation in development mode
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 522 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 523 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mvoice)
+    [31m[1m>[22m[39m[90m 524 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 525 |[39m
+     [90m 526 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 527 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:524:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Webhook Security › should prevent webhook replay attacks
+
+    expected 401 "Unauthorized", got 200 "OK"
+
+    [0m [90m 539 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 540 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mvoice)
+    [31m[1m>[22m[39m[90m 541 |[39m         [33m.[39mexpect([35m401[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 542 |[39m
+     [90m 543 |[39m       expect(response[33m.[39mbody[33m.[39merror)[33m.[39mtoContain([32m'timestamp'[39m)[33m;[39m
+     [90m 544 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:541:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Webhook Security › should rate limit webhook endpoints
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    [0m [90m 557 |[39m       )[33m;[39m
+     [90m 558 |[39m
+    [31m[1m>[22m[39m[90m 559 |[39m       expect(rateLimited)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m     |[39m                           [31m[1m^[22m[39m
+     [90m 560 |[39m     })[33m;[39m
+     [90m 561 |[39m   })[33m;[39m
+     [90m 562 |[39m[0m
+
+      at Object.toBe (api/routes/webhooks.test.js:559:27)
+
+  ● Webhooks API Routes › Error Handling › should handle database connection errors
+
+    expected 500 "Internal Server Error", got 400 "Bad Request"
+
+    [0m [90m 569 |[39m         [33m.[39mquery({ delivery_id[33m:[39m testData[33m.[39mvalidDelivery[33m.[39m_id[33m.[39mtoString() })
+     [90m 570 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mvoice)
+    [31m[1m>[22m[39m[90m 571 |[39m         [33m.[39mexpect([35m500[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 572 |[39m
+     [90m 573 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m 574 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:571:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Error Handling › should handle malformed webhook data
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+    [0m [90m 580 |[39m         [33m.[39mexpect([35m400[39m)[33m;[39m
+     [90m 581 |[39m
+    [31m[1m>[22m[39m[90m 582 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 583 |[39m     })[33m;[39m
+     [90m 584 |[39m
+     [90m 585 |[39m     it([32m'should handle webhook timeouts gracefully'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.toBe (api/routes/webhooks.test.js:582:37)
+
+  ● Webhooks API Routes › Error Handling › should handle webhook timeouts gracefully
+
+    expected 500 "Internal Server Error", got 400 "Bad Request"
+
+    [0m [90m 590 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mrecording)
+     [90m 591 |[39m         [33m.[39mtimeout([35m5000[39m)
+    [31m[1m>[22m[39m[90m 592 |[39m         [33m.[39mexpect([35m500[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 593 |[39m
+     [90m 594 |[39m       expect(response[33m.[39mbody[33m.[39msuccess)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m 595 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:592:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Error Handling › should log webhook processing errors
+
+    expected 500 "Internal Server Error", got 400 "Bad Request"
+
+    [0m [90m 602 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 603 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mrecording)
+    [31m[1m>[22m[39m[90m 604 |[39m         [33m.[39mexpect([35m500[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 605 |[39m
+     [90m 606 |[39m       expect(consoleSpy[33m.[39mcalled)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 607 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:604:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Idempotency › should handle duplicate webhook deliveries
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 616 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 617 |[39m         [33m.[39msend(webhookData)
+    [31m[1m>[22m[39m[90m 618 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 619 |[39m
+     [90m 620 |[39m       [90m// Duplicate request[39m
+     [90m 621 |[39m       [36mconst[39m response [33m=[39m [36mawait[39m request(app)[0m
+
+      at Object.expect (api/routes/webhooks.test.js:618:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Idempotency › should use idempotency keys for webhook processing
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 634 |[39m         [33m.[39m[36mset[39m([32m'Idempotency-Key'[39m[33m,[39m idempotencyKey)
+     [90m 635 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mrecording)
+    [31m[1m>[22m[39m[90m 636 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 637 |[39m
+     [90m 638 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 639 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:636:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Monitoring and Metrics › should track webhook processing times
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 647 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 648 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mrecording)
+    [31m[1m>[22m[39m[90m 649 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 650 |[39m
+     [90m 651 |[39m       [36mconst[39m duration [33m=[39m [33mDate[39m[33m.[39mnow() [33m-[39m start[33m;[39m
+     [90m 652 |[39m       expect(duration)[33m.[39mtoBeGreaterThan([35m0[39m)[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:649:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Monitoring and Metrics › should track webhook success/failure rates
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 656 |[39m       [36mconst[39m response [33m=[39m [36mawait[39m request(app)
+     [90m 657 |[39m         [33m.[39m[36mget[39m([32m'/api/webhooks/metrics'[39m)
+    [31m[1m>[22m[39m[90m 658 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 659 |[39m
+     [90m 660 |[39m       expect(response[33m.[39mstatus)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m 661 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:658:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● Webhooks API Routes › Monitoring and Metrics › should emit metrics events for monitoring
+
+    expected 200 "OK", got 400 "Bad Request"
+
+    [0m [90m 667 |[39m         [33m.[39mpost([32m'/api/webhooks/recording'[39m)
+     [90m 668 |[39m         [33m.[39msend(testData[33m.[39mtwilioWebhookData[33m.[39mrecording)
+    [31m[1m>[22m[39m[90m 669 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 670 |[39m
+     [90m 671 |[39m       [90m// Verify metrics were emitted (would be implementation specific)[39m
+     [90m 672 |[39m     })[33m;[39m[0m
+
+      at Object.expect (api/routes/webhooks.test.js:669:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+FAIL tests/services/queueService.test.js
+  Queue Service - Unit Tests with Mocks
+    Service Initialization
+      √ should have queue service methods available (9 ms)
+      √ should handle service availability gracefully (2 ms)
+    addCallJob function
+      × should create job successfully with valid data (3 ms)
+      × should handle job creation with delay (3 ms)
+      √ should throw error when job data is missing (9 ms)
+      × should handle queue errors gracefully (2 ms)
+    getQueueStats function
+      × should return queue statistics object (11 ms)
+      √ should handle queue errors gracefully (5 ms)
+    Error Handling
+      × should handle service connection errors (2 ms)
+      √ should handle malformed data gracefully (5 ms)
+      × should handle large data payloads (2 ms)
+    Service Integration
+      × should maintain consistent data format (2 ms)
+      × should handle concurrent job additions (2 ms)
+    Performance and Reliability
+      × should handle timeout scenarios (10 ms)
+      × should validate service health (5 ms)
+    Configuration and Environment
+      √ should respect environment configuration (2 ms)
+      √ should handle missing configuration gracefully (2 ms)
+
+  ● Queue Service - Unit Tests with Mocks › addCallJob function › should create job successfully with valid data
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: {"data": {"deliveryId": "test-delivery-123"}, "id": "job-123"}
+    Received: undefined
+
+    [0m [90m 39 |[39m       [36mconst[39m result [33m=[39m [36mawait[39m queueService[33m.[39maddCallJob(jobData)[33m;[39m
+     [90m 40 |[39m
+    [31m[1m>[22m[39m[90m 41 |[39m       expect(result)[33m.[39mtoEqual(mockJob)[33m;[39m
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 42 |[39m       expect(result[33m.[39mid)[33m.[39mtoBe([32m'job-123'[39m)[33m;[39m
+     [90m 43 |[39m       expect(result[33m.[39mdata[33m.[39mdeliveryId)[33m.[39mtoBe([32m'test-delivery-123'[39m)[33m;[39m
+     [90m 44 |[39m       expect(mockAdd)[33m.[39mtoHaveBeenCalledWith([32m'initiate-call'[39m[33m,[39m jobData[33m,[39m {[0m
+
+      at Object.toEqual (services/queueService.test.js:41:22)
+
+  ● Queue Service - Unit Tests with Mocks › addCallJob function › should handle job creation with delay
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: {"data": {"deliveryId": "test-delivery-456"}, "id": "job-456"}
+    Received: undefined
+
+    [0m [90m 65 |[39m       [36mconst[39m result [33m=[39m [36mawait[39m queueService[33m.[39maddCallJob(jobData[33m,[39m delay)[33m;[39m
+     [90m 66 |[39m
+    [31m[1m>[22m[39m[90m 67 |[39m       expect(result)[33m.[39mtoEqual(mockJob)[33m;[39m
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 68 |[39m       expect(mockAdd)[33m.[39mtoHaveBeenCalledWith([32m'initiate-call'[39m[33m,[39m jobData[33m,[39m {
+     [90m 69 |[39m         delay[33m,[39m
+     [90m 70 |[39m         removeOnComplete[33m:[39m [35m10[39m[33m,[39m[0m
+
+      at Object.toEqual (services/queueService.test.js:67:22)
+
+  ● Queue Service - Unit Tests with Mocks › addCallJob function › should handle queue errors gracefully
+
+    expect(received).rejects.toThrow()
+
+    Received promise resolved instead of rejected
+    Resolved to value: undefined
+
+    [0m [90m 89 |[39m
+     [90m 90 |[39m       [36mconst[39m jobData [33m=[39m { deliveryId[33m:[39m [32m'test-delivery-123'[39m }[33m;[39m
+    [31m[1m>[22m[39m[90m 91 |[39m       [36mawait[39m expect(queueService[33m.[39maddCallJob(jobData))[33m.[39mrejects[33m.[39mtoThrow([32m'Failed to add job to queue: Queue connection failed'[39m)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 92 |[39m     })[33m;[39m
+     [90m 93 |[39m   })[33m;[39m
+     [90m 94 |[39m[0m
+
+      at expect (../node_modules/expect/build/index.js:2116:15)
+      at Object.expect (services/queueService.test.js:91:13)
+
+  ● Queue Service - Unit Tests with Mocks › getQueueStats function › should return queue statistics object
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 4
+
+      Object {
+    -   "active": 1,
+    -   "completed": 5,
+    +   "active": 0,
+    +   "completed": 0,
+    +   "error": "Cannot read properties of undefined (reading 'length')",
+        "failed": 0,
+    -   "waiting": 2,
+    +   "waiting": 0,
+      }
+
+    [0m [90m 116 |[39m       [36mconst[39m stats [33m=[39m [36mawait[39m queueService[33m.[39mgetQueueStats()[33m;[39m
+     [90m 117 |[39m
+    [31m[1m>[22m[39m[90m 118 |[39m       expect(stats)[33m.[39mtoEqual(mockStats)[33m;[39m
+     [90m     |[39m                     [31m[1m^[22m[39m
+     [90m 119 |[39m       expect(stats[33m.[39mwaiting)[33m.[39mtoBe([35m2[39m)[33m;[39m
+     [90m 120 |[39m       expect(stats[33m.[39mactive)[33m.[39mtoBe([35m1[39m)[33m;[39m
+     [90m 121 |[39m       expect(stats[33m.[39mcompleted)[33m.[39mtoBe([35m5[39m)[33m;[39m[0m
+
+      at Object.toEqual (services/queueService.test.js:118:21)
+
+  ● Queue Service - Unit Tests with Mocks › Error Handling › should handle service connection errors
+
+    expect(received).rejects.toThrow()
+
+    Received promise resolved instead of rejected
+    Resolved to value: undefined
+
+    [0m [90m 148 |[39m       }))[33m;[39m
+     [90m 149 |[39m
+    [31m[1m>[22m[39m[90m 150 |[39m       [36mawait[39m expect(queueService[33m.[39maddCallJob({ deliveryId[33m:[39m [32m'test'[39m }))[33m.[39mrejects[33m.[39mtoThrow([32m'Failed to add job to queue: Redis connection failed'[39m)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 151 |[39m     })[33m;[39m
+     [90m 152 |[39m
+     [90m 153 |[39m     it([32m'should handle malformed data gracefully'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at expect (../node_modules/expect/build/index.js:2116:15)
+      at Object.expect (services/queueService.test.js:150:13)
+
+  ● Queue Service - Unit Tests with Mocks › Error Handling › should handle large data payloads
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: {"data": {"deliveryId": "test-123", "metadata": "test-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-datatest-data"}, "id": "large-job-123"}
+    Received: undefined
+
+    [0m [90m 168 |[39m
+     [90m 169 |[39m       [36mconst[39m result [33m=[39m [36mawait[39m queueService[33m.[39maddCallJob(largeData)[33m;[39m
+    [31m[1m>[22m[39m[90m 170 |[39m       expect(result)[33m.[39mtoEqual(mockJob)[33m;[39m
+     [90m     |[39m                      [31m[1m^[22m[39m
+     [90m 171 |[39m     })[33m;[39m
+     [90m 172 |[39m   })[33m;[39m
+     [90m 173 |[39m[0m
+
+      at Object.toEqual (services/queueService.test.js:170:22)
+
+  ● Queue Service - Unit Tests with Mocks › Service Integration › should maintain consistent data format
+
+    TypeError: Cannot read properties of undefined (reading 'data')
+
+    [0m [90m 187 |[39m
+     [90m 188 |[39m       [36mconst[39m result [33m=[39m [36mawait[39m queueService[33m.[39maddCallJob(testData)[33m;[39m
+    [31m[1m>[22m[39m[90m 189 |[39m       expect(result[33m.[39mdata)[33m.[39mtoMatchObject(testData)[33m;[39m
+     [90m     |[39m                     [31m[1m^[22m[39m
+     [90m 190 |[39m     })[33m;[39m
+     [90m 191 |[39m
+     [90m 192 |[39m     it([32m'should handle concurrent job additions'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.data (services/queueService.test.js:189:21)
+
+  ● Queue Service - Unit Tests with Mocks › Service Integration › should handle concurrent job additions
+
+    expect(received).toHaveProperty(path)
+
+    Matcher error: received value must not be null nor undefined
+
+    Received has value: undefined
+
+    [0m [90m 210 |[39m       results[33m.[39mforEach(result [33m=>[39m {
+     [90m 211 |[39m         expect(result[33m.[39mstatus)[33m.[39mtoBe([32m'fulfilled'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 212 |[39m         expect(result[33m.[39mvalue)[33m.[39mtoHaveProperty([32m'id'[39m)[33m;[39m
+     [90m     |[39m                              [31m[1m^[22m[39m
+     [90m 213 |[39m         expect(result[33m.[39mvalue)[33m.[39mtoHaveProperty([32m'data'[39m)[33m;[39m
+     [90m 214 |[39m       })[33m;[39m
+     [90m 215 |[39m     })[33m;[39m[0m
+
+      at toHaveProperty (services/queueService.test.js:212:30)
+          at Array.forEach (<anonymous>)
+      at Object.forEach (services/queueService.test.js:210:15)
+
+  ● Queue Service - Unit Tests with Mocks › Performance and Reliability › should handle timeout scenarios
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: {"data": {"deliveryId": "timeout-test"}, "id": "timeout-job"}
+    Received: undefined
+
+    [0m [90m 233 |[39m         timeoutPromise
+     [90m 234 |[39m       ])[33m;[39m
+    [31m[1m>[22m[39m[90m 235 |[39m       expect(result)[33m.[39mtoEqual(mockJob)[33m;[39m
+     [90m     |[39m                      [31m[1m^[22m[39m
+     [90m 236 |[39m     })[33m;[39m
+     [90m 237 |[39m
+     [90m 238 |[39m     it([32m'should validate service health'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.toEqual (services/queueService.test.js:235:22)
+
+  ● Queue Service - Unit Tests with Mocks › Performance and Reliability › should validate service health
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 3
+
+      Object {
+        "active": 0,
+    -   "completed": 2,
+    +   "completed": 0,
+    +   "error": "Cannot read properties of undefined (reading 'length')",
+        "failed": 0,
+    -   "waiting": 1,
+    +   "waiting": 0,
+      }
+
+    [0m [90m 257 |[39m
+     [90m 258 |[39m       [36mconst[39m stats [33m=[39m [36mawait[39m queueService[33m.[39mgetQueueStats()[33m;[39m
+    [31m[1m>[22m[39m[90m 259 |[39m       expect(stats)[33m.[39mtoEqual(mockStats)[33m;[39m
+     [90m     |[39m                     [31m[1m^[22m[39m
+     [90m 260 |[39m       expect([36mtypeof[39m stats[33m.[39mwaiting)[33m.[39mtoBe([32m'number'[39m)[33m;[39m
+     [90m 261 |[39m       expect([36mtypeof[39m stats[33m.[39mactive)[33m.[39mtoBe([32m'number'[39m)[33m;[39m
+     [90m 262 |[39m       expect([36mtypeof[39m stats[33m.[39mcompleted)[33m.[39mtoBe([32m'number'[39m)[33m;[39m[0m
+
+      at Object.toEqual (services/queueService.test.js:259:21)
+
+FAIL tests/middleware/auth.test.js
+  Auth Middleware - Integration Tests (No Mocks)
+    authenticateApiKey
+      √ should authenticate with valid API key in x-api-key header (3 ms)
+      √ should authenticate with valid API key in authorization header (2 ms)
+      × should reject request with missing API key (4 ms)
+      × should reject request with invalid API key (3 ms)
+      √ should handle empty authorization header (2 ms)
+      √ should handle malformed authorization header (2 ms)
+      √ should handle case-insensitive bearer prefix (2 ms)
+    authenticateJWT
+      √ should handle missing JWT token (2 ms)
+      √ should handle malformed JWT token (8 ms)
+      √ should process authorization header format (2 ms)
+      √ should handle missing authorization header (2 ms)
+    requireAdmin
+      √ should allow requests with admin role (2 ms)
+      × should reject requests without user (2 ms)
+      × should reject requests with non-admin role (2 ms)
+      √ should reject requests with agent role (2 ms)
+      √ should handle user without role property (2 ms)
+      √ should handle null user (2 ms)
+    Middleware Integration
+      √ should work in sequence with valid API key then admin check (2 ms)
+      √ should handle middleware error propagation (1 ms)
+      × should preserve request object modifications (2 ms)
+    Response Format Consistency
+      √ should return JSON responses for auth failures (3 ms)
+      √ should return consistent error format for admin failures (3 ms)
+
+  ● Auth Middleware - Integration Tests (No Mocks) › authenticateApiKey › should reject request with missing API key
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+      Object {
+    -   "error": "API key required",
+    +   "error": "Access token required",
+    +   "success": false,
+      },
+
+    Number of calls: 1
+
+    [0m [90m 44 |[39m
+     [90m 45 |[39m       expect(res[33m.[39mstatus)[33m.[39mtoHaveBeenCalledWith([35m401[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 46 |[39m       expect(res[33m.[39mjson)[33m.[39mtoHaveBeenCalledWith({ 
+     [90m    |[39m                        [31m[1m^[22m[39m
+     [90m 47 |[39m         error[33m:[39m [32m'API key required'[39m 
+     [90m 48 |[39m       })[33m;[39m
+     [90m 49 |[39m       expect(next)[33m.[39mnot[33m.[39mtoHaveBeenCalled()[33m;[39m[0m
+
+      at Object.toHaveBeenCalledWith (middleware/auth.test.js:46:24)
+
+  ● Auth Middleware - Integration Tests (No Mocks) › authenticateApiKey › should reject request with invalid API key
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+      Object {
+        "error": "Invalid API key",
+    +   "success": false,
+      },
+
+    Number of calls: 1
+
+    [0m [90m 56 |[39m
+     [90m 57 |[39m       expect(res[33m.[39mstatus)[33m.[39mtoHaveBeenCalledWith([35m401[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 58 |[39m       expect(res[33m.[39mjson)[33m.[39mtoHaveBeenCalledWith({ 
+     [90m    |[39m                        [31m[1m^[22m[39m
+     [90m 59 |[39m         error[33m:[39m [32m'Invalid API key'[39m 
+     [90m 60 |[39m       })[33m;[39m
+     [90m 61 |[39m       expect(next)[33m.[39mnot[33m.[39mtoHaveBeenCalled()[33m;[39m[0m
+
+      at Object.toHaveBeenCalledWith (middleware/auth.test.js:58:24)
+
+  ● Auth Middleware - Integration Tests (No Mocks) › requireAdmin › should reject requests without user
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+      Object {
+    -   "error": "Admin access required",
+    +   "error": "Insufficient permissions",
+    +   "success": false,
+      },
+
+    Number of calls: 1
+
+    [0m [90m 139 |[39m
+     [90m 140 |[39m       expect(res[33m.[39mstatus)[33m.[39mtoHaveBeenCalledWith([35m403[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 141 |[39m       expect(res[33m.[39mjson)[33m.[39mtoHaveBeenCalledWith({ 
+     [90m     |[39m                        [31m[1m^[22m[39m
+     [90m 142 |[39m         error[33m:[39m [32m'Admin access required'[39m 
+     [90m 143 |[39m       })[33m;[39m
+     [90m 144 |[39m       expect(next)[33m.[39mnot[33m.[39mtoHaveBeenCalled()[33m;[39m[0m
+
+      at Object.toHaveBeenCalledWith (middleware/auth.test.js:141:24)
+
+  ● Auth Middleware - Integration Tests (No Mocks) › requireAdmin › should reject requests with non-admin role
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+      Object {
+    -   "error": "Admin access required",
+    +   "error": "Insufficient permissions",
+    +   "success": false,
+      },
+
+    Number of calls: 1
+
+    [0m [90m 151 |[39m
+     [90m 152 |[39m       expect(res[33m.[39mstatus)[33m.[39mtoHaveBeenCalledWith([35m403[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 153 |[39m       expect(res[33m.[39mjson)[33m.[39mtoHaveBeenCalledWith({
+     [90m     |[39m                        [31m[1m^[22m[39m
+     [90m 154 |[39m         error[33m:[39m [32m'Admin access required'[39m
+     [90m 155 |[39m       })[33m;[39m
+     [90m 156 |[39m       expect(next)[33m.[39mnot[33m.[39mtoHaveBeenCalled()[33m;[39m[0m
+
+      at Object.toHaveBeenCalledWith (middleware/auth.test.js:153:24)
+
+  ● Auth Middleware - Integration Tests (No Mocks) › Middleware Integration › should preserve request object modifications
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    [0m [90m 218 |[39m
+     [90m 219 |[39m       expect(req[33m.[39mcustom)[33m.[39mtoBe([32m'test-value'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 220 |[39m       expect(next)[33m.[39mtoHaveBeenCalled()[33m;[39m
+     [90m     |[39m                    [31m[1m^[22m[39m
+     [90m 221 |[39m     })[33m;[39m
+     [90m 222 |[39m   })[33m;[39m
+     [90m 223 |[39m[0m
+
+      at Object.toHaveBeenCalled (middleware/auth.test.js:220:20)
+
+PASS tests/services/aiService.test.js (35.281 s)
+  AIService Integration Tests
+    Service Initialization
+      √ should initialize with OpenAI API key (3 ms)
+      √ should handle missing API key gracefully (299 ms)
+    transcribeRecording method
+      √ should handle transcription request gracefully (1817 ms)
+      √ should handle service unavailability (338 ms)
+      √ should handle disabled service (12 ms)
+    analyzeTranscription method
+      √ should handle transcription analysis gracefully (344 ms)
+      √ should handle empty transcription (2 ms)
+      √ should handle disabled service (2 ms)
+      √ should handle various transcription content (1393 ms)
+    processRecording method
+      √ should handle full recording processing gracefully (1724 ms)
+      √ should handle processing pipeline errors (124 ms)
+    authenticateVoice method
+      √ should handle voice authentication gracefully (8900 ms)
+      √ should handle disabled service for voice auth (1 ms)
+    createVoiceProfile method
+      √ should handle voice profile creation gracefully (2450 ms)
+      √ should handle disabled service for profile creation (4 ms)
+    parseFallbackAnalysis method
+      √ should parse urgent priority from text (5 ms)
+      √ should parse delivery instructions (4 ms)
+      √ should detect concerns in text (2 ms)
+      √ should handle empty or invalid text (3 ms)
+      √ should parse various text patterns (5 ms)
+    error handling and edge cases
+      √ should handle network timeouts gracefully (12498 ms)
+      √ should validate method parameters (23 ms)
+      √ should handle service state changes (3 ms)
+    caching behavior
+      √ should handle cache interactions gracefully (4898 ms)
+
+PASS tests/api/routes/calls.test.js
+  Calls API Routes Integration Tests
+    POST /api/calls/initiate
+      √ should handle call initiation gracefully (264 ms)
+      √ should handle call initiation with delay (65 ms)
+      √ should validate required delivery_id parameter (52 ms)
+      √ should handle malformed JSON gracefully (49 ms)
+      √ should handle empty request body (67 ms)
+      √ should handle various delivery ID formats (329 ms)
+    GET /api/calls/:delivery_id
+      √ should handle call logs retrieval gracefully (71 ms)
+      √ should handle different delivery ID formats in URL (223 ms)
+      √ should handle special characters in delivery ID (159 ms)
+    Error handling and edge cases
+      √ should handle concurrent requests gracefully (316 ms)
+      √ should handle very long delivery IDs (65 ms)
+      √ should handle requests with extra fields (88 ms)
+      √ should handle invalid delay values (465 ms)
+    Route parameter extraction
+      √ should extract delivery_id from URL correctly (431 ms)
+      √ should handle encoded URL parameters (58 ms)
+    Service integration behavior
+      √ should handle queue service states gracefully (63 ms)
+      √ should handle database states gracefully (108 ms)
+      √ should maintain API contract consistency (135 ms)
+
+PASS tests/api/routes/analytics.test.js
+  Analytics API Routes - Integration Tests (No Mocks)
+    Authentication and Route Access
+      √ should process dashboard requests (63 ms)
+      √ should process overview requests (41 ms)
+      √ should handle agent performance endpoint (57 ms)
+    Query Parameter Handling
+      √ should handle pagination parameters (51 ms)
+      √ should handle date filters (46 ms)
+      √ should handle agent filters (38 ms)
+    Delivery Analytics
+      √ should handle delivery status requests (39 ms)
+      √ should handle detailed delivery analytics (38 ms)
+    Call Analytics
+      √ should handle call analytics requests (38 ms)
+      √ should apply date filters to call analytics (46 ms)
+    Time Series Data
+      √ should handle valid delivery metrics (59 ms)
+      √ should handle valid call metrics (92 ms)
+      √ should reject invalid metrics (33 ms)
+    AI Processing
+      √ should handle AI processing requests with valid data (57 ms)
+      √ should validate required fields for AI processing (50 ms)
+      √ should handle AI status requests (36 ms)
+    Cache Management
+      √ should handle cache clear requests (35 ms)
+    Agent-Specific Analytics
+      √ should handle individual agent stats (54 ms)
+      √ should handle different agent IDs (40 ms)
+    Advanced Analytics Features
+      √ should handle failed delivery reduction metrics (34 ms)
+      √ should handle customer response patterns (40 ms)
+      √ should handle agent listening compliance (45 ms)
+      √ should handle ROI metrics (33 ms)
+    Error Handling
+      √ should handle malformed JSON (39 ms)
+      √ should return JSON responses for all endpoints (58 ms)
+      √ should handle non-existent endpoints gracefully (44 ms)
+
+PASS tests/api/routes/deliveries.test.js
+  Deliveries API Routes - Integration Tests (No Mocks)
+    Authentication Tests
+      √ should reject requests without API key (134 ms)
+      √ should reject requests with invalid API key (80 ms)
+    GET /api/deliveries
+      √ should handle authenticated requests (54 ms)
+      √ should return JSON response format (33 ms)
+      √ should handle database connection issues gracefully (29 ms)
+    GET /api/deliveries/:id
+      √ should handle valid ObjectId format (52 ms)
+      √ should handle invalid ObjectId format (71 ms)
+      √ should require authentication (37 ms)
+      √ should return JSON response (65 ms)
+    POST /api/deliveries
+      √ should require authentication (51 ms)
+      √ should handle authenticated POST requests (41 ms)
+      √ should validate required fields (46 ms)
+      √ should handle malformed JSON (69 ms)
+      √ should return JSON response (41 ms)
+    PUT /api/deliveries/:id
+      √ should require authentication (65 ms)
+      √ should handle authenticated PUT requests (34 ms)
+      √ should handle invalid ObjectId in URL (39 ms)
+      √ should return JSON response (44 ms)
+    DELETE /api/deliveries/:id
+      √ should require authentication (41 ms)
+      √ should handle authenticated DELETE requests (63 ms)
+      √ should handle invalid ObjectId in URL (40 ms)
+      √ should return JSON response (35 ms)
+    HTTP Method Support
+      √ should support GET method (64 ms)
+      √ should support POST method (42 ms)
+      √ should support PUT method (39 ms)
+      √ should support DELETE method (34 ms)
+    Content Type Handling
+      √ should handle application/json content type (48 ms)
+      √ should handle missing content type gracefully (38 ms)
+    Error Response Format
+      √ should return consistent error format for auth failures (31 ms)
+      √ should return consistent error format for malformed JSON (42 ms)
+
+PASS tests/services/storageService.test.js
+  StorageService - Integration Tests
+    uploadFile
+      √ should handle uploadFile gracefully (129 ms)
+      √ should throw error when R2 storage not configured (100 ms)
+      √ should handle upload errors gracefully (44 ms)
+      √ should validate service functionality (2 ms)
+    getSignedUrl
+      √ should handle getSignedUrl gracefully (6 ms)
+      √ should handle custom expiration time (5 ms)
+      √ should throw error when R2 storage not configured (151 ms)
+    deleteFile
+      √ should handle deleteFile gracefully (68 ms)
+      √ should throw error when R2 storage not configured (104 ms)
+    uploadRecording
+      √ should handle uploadRecording gracefully (40 ms)
+    configuration
+      √ should export service functions (5 ms)
+      √ should maintain singleton instance (3 ms)
+
+PASS tests/services/cacheService.test.js
+  CacheService Integration Tests
+    set method
+      √ should handle cache operations gracefully (5 ms)
+      √ should handle set without TTL (4 ms)
+      √ should handle connection state correctly (3 ms)
+    get method
+      √ should handle cache retrieval gracefully (3 ms)
+      √ should return null when not connected (12 ms)
+      √ should handle JSON parsing gracefully in real scenarios (4 ms)
+    del method
+      √ should handle cache deletion gracefully (9 ms)
+      √ should return false when not connected (5 ms)
+    exists method
+      √ should handle cache existence check gracefully (4 ms)
+      √ should return false when not connected (4 ms)
+    mset method
+      √ should handle multiple cache operations gracefully (3 ms)
+      √ should handle multiple operations with TTL (5 ms)
+      √ should return false when not connected (5 ms)
+    mget method
+      √ should handle multiple cache retrieval gracefully (19 ms)
+      √ should return empty object when not connected (7 ms)
+    flushAll method
+      √ should handle cache flush gracefully (4 ms)
+    connection management
+      √ should handle close gracefully (12 ms)
+      √ should report connection status (2 ms)
+    error handling patterns
+      √ should handle service unavailability gracefully (3 ms)
+
+PASS tests/middleware/validation.test.js
+  Validation Middleware
+    validateBody
+      √ should pass validation with valid data (15 ms)
+      √ should fail validation with invalid data (13 ms)
+      √ should fail validation with missing required fields (5 ms)
+    validateQuery
+      √ should pass validation with valid query params (8 ms)
+      √ should fail validation with invalid query params (7 ms)
+    validateParams
+      √ should pass validation with valid params (6 ms)
+      √ should fail validation with invalid params (4 ms)
+    schemas.agentCreate
+      √ should validate agent creation with all required fields (5 ms)
+      √ should fail with invalid phone number (14 ms)
+      √ should fail with short password (8 ms)
+      √ should validate location coordinates (11 ms)
+    schemas.deliveryCreate
+      √ should validate delivery creation with all required fields (7 ms)
+      √ should validate delivery items (6 ms)
+      √ should fail with invalid priority (4 ms)
+    schemas.callInitiate
+      √ should validate call initiation data (4 ms)
+      √ should fail with invalid ObjectId (3 ms)
+    schemas.locationUpdate
+      √ should validate location update data (6 ms)
+      √ should fail with invalid coordinates (6 ms)
+    schemas.pagination
+      √ should validate pagination parameters (5 ms)
+      √ should apply defaults for missing values (4 ms)
+      √ should fail with invalid order value (9 ms)
+    schemas.login
+      √ should validate login credentials (6 ms)
+      √ should fail with invalid email (13 ms)
+    schemas.idParam
+      √ should validate MongoDB ObjectId parameter (7 ms)
+      √ should fail with invalid ObjectId format (6 ms)
+
+PASS tests/utils/helpers.test.js
+  Utility Helpers
+    formatPhoneNumber
+      √ should format US phone numbers correctly (7 ms)
+      √ should handle US numbers with country code (6 ms)
+      √ should handle international phone numbers (3 ms)
+      √ should handle invalid phone numbers (3 ms)
+      √ should validate phone number lengths (6 ms)
+      √ should handle non-string input (2 ms)
+    validateEmail
+      √ should validate correct email formats (1 ms)
+      √ should reject invalid email formats (2 ms)
+      √ should handle edge cases (3 ms)
+      √ should reject emails with spaces (2 ms)
+    generateId
+      √ should generate unique IDs (3 ms)
+      √ should generate IDs with prefix (3 ms)
+      √ should generate IDs without prefix (3 ms)
+      √ should handle empty prefix (4 ms)
+    sanitizeString
+      √ should remove dangerous characters (2 ms)
+      √ should trim whitespace (2 ms)
+      √ should handle edge cases (2 ms)
+      √ should preserve safe characters (3 ms)
+
+PASS tests/unit/basic.test.js
+  Basic Test Suite
+    √ should pass a simple test (3 ms)
+    √ should work with async operations (1 ms)
+    √ should handle objects correctly (2 ms)
+  Environment Configuration
+    √ should have NODE_ENV set to test (1 ms)
+    √ should load environment variables from .env.test (2 ms)
+    √ should have test API key configured (1 ms)
+
+Test Suites: 6 failed, 1 skipped, 9 passed, 15 of 16 total
+Tests:       103 failed, 14 skipped, 221 passed, 338 total
+Snapshots:   0 total
+Time:        141.613 s
+Ran all test suites.
+
+Jest has detected the following 1 open handle potentially keeping Jest from exiting:
+
+  ●  TCPSERVERWRAP
+
+    [0m [90m 360 |[39m
+     [90m 361 |[39m [90m// Start server[39m
+    [31m[1m>[22m[39m[90m 362 |[39m server[33m.[39mlisten([33mPORT[39m[33m,[39m () [33m=>[39m {
+     [90m     |[39m        [31m[1m^[22m[39m
+     [90m 363 |[39m   logger[33m.[39minfo([32m`Server running on port ${PORT}`[39m)[33m;[39m
+     [90m 364 |[39m   logger[33m.[39minfo([32m`Health check available at: http://localhost:${PORT}/health`[39m)[33m;[39m
+     [90m 365 |[39m   logger[33m.[39minfo([32m`Metrics available at: http://localhost:${PORT}/metrics`[39m)[33m;[39m[0m
+
+      at Object.listen (../src/index.js:362:8)
+      at Object.require (performance/loadTest.test.js:3:17)
+

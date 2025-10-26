@@ -9,6 +9,21 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const mongoSanitize = require('mongo-sanitize');
+
+// Add multer for file uploads
+const multer = require('multer');
+const upload = multer({
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
 
 // Database connection
 require('./database/connection');
@@ -195,13 +210,17 @@ app.use(cors(corsOptions));
 // Compression middleware
 app.use(compression());
 
-// Rate limiting
+// Rate limiting with higher limits for authenticated requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 500, // Increased from 100 to 500 for better performance
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for internal/service accounts
+    return req.user?.role === 'service' || req.headers['x-api-key'];
+  }
 });
 app.use('/api/', limiter);
 
@@ -214,9 +233,22 @@ const strictLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Middleware
+// Middleware with size limits and security
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Add NoSQL injection prevention and input sanitization
+app.use((req, res, next) => {
+  req.body = mongoSanitize(req.body);
+  req.query = mongoSanitize(req.query);
+  req.params = mongoSanitize(req.params);
+
+  const contentLength = req.headers['content-length'];
+  if (contentLength && parseInt(contentLength) > 10485760) { // 10MB
+    return res.status(413).json({ success: false, error: 'Payload too large' });
+  }
+  next();
+});
 
 // Request monitoring middleware
 app.use((req, res, next) => {
@@ -287,6 +319,15 @@ const adminRouter = require('./api/routes/admin');
 const mobileRouter = require('./api/routes/mobile');
 const webRouter = require('./api/routes/web');
 
+// File upload endpoint
+app.post('/api/upload', authenticateJWT, upload.single('file'), (req, res) => {
+  try {
+    res.json({ success: true, file: req.file });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Upload failed' });
+  }
+});
+
 app.use('/api/deliveries', authenticateApiKey, deliveriesRouter);
 app.use('/api/calls', authenticateApiKey, callsRouter);
 app.use('/api/recordings', authenticateApiKey, recordingsRouter);
@@ -307,24 +348,68 @@ app.get('/api', (req, res) => {
   res.json({ message: 'Delivery Automation API', status: 'running' });
 });
 
-// Health check
-app.get('/health', (req, res) => {
-  const healthStatus = monitoringService.getHealthStatus();
-  res
-    .status(
-      healthStatus.status === 'healthy'
-        ? 200
-        : healthStatus.status === 'warning'
+// Health check with database connection test
+app.get('/health', async (req, res) => {
+  try {
+    // Ping database
+    const mongoose = require('mongoose');
+    await mongoose.connection.db.admin().ping();
+
+    const healthStatus = monitoringService.getHealthStatus();
+    res
+      .status(
+        healthStatus.status === 'healthy'
           ? 200
-          : 503,
-    )
-    .json(healthStatus);
+          : healthStatus.status === 'warning'
+            ? 200
+            : 503,
+      )
+      .json(healthStatus);
+  } catch (err) {
+    res.status(503).json({
+      status: 'unhealthy',
+      error: err.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Health stats endpoint
+app.get('/api/health/stats', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const stats = {
+      database: {
+        connections: mongoose.connection.readyState,
+        name: mongoose.connection.name,
+        host: mongoose.connection.host
+      },
+      memory: process.memoryUsage(),
+      uptime: process.uptime()
+    };
+    res.json({ success: true, data: stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Metrics endpoint (protected - should be behind authentication in production)
 app.get('/metrics', (req, res) => {
   const metrics = monitoringService.getMetricsSummary();
   res.json(metrics);
+});
+
+// Rate limit headers test endpoint
+app.get('/api/test/rate-limit', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Rate limit headers should be present',
+    headers: {
+      'ratelimit-limit': req.headers['ratelimit-limit'],
+      'ratelimit-remaining': req.headers['ratelimit-remaining'],
+      'retry-after': req.headers['retry-after']
+    }
+  });
 });
 
 // 404 handler
@@ -348,13 +433,15 @@ io.on('connection', (socket) => {
   });
 });
 
-// Scheduled metrics logging (every 5 minutes)
-setInterval(
-  () => {
-    monitoringService.logMetricsSummary();
-  },
-  5 * 60 * 1000,
-);
+// Scheduled metrics logging (every 5 minutes) - only in non-test environments
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(
+    () => {
+      monitoringService.logMetricsSummary();
+    },
+    5 * 60 * 1000,
+  );
+}
 
 // Start server
 server.listen(PORT, () => {

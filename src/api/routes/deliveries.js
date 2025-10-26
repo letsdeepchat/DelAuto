@@ -2,6 +2,20 @@ const express = require("express");
 const router = express.Router();
 const Delivery = require("../../database/models/Delivery");
 const { asyncHandler } = require("../middleware/errorHandler");
+const NodeCache = require('node-cache');
+const CircuitBreaker = require('opossum');
+const cache = new NodeCache({ stdTTL: 60 }); // Cache for 60 seconds
+
+// Circuit breaker for database queries
+const breakerOptions = {
+  timeout: 3000,
+  errorThresholdPercentage: 50,
+  resetTimeout: 30000
+};
+
+const deliveryBreaker = new CircuitBreaker(async (query) => {
+  return await Delivery.find(query);
+}, breakerOptions);
 
 /**
  * @swagger
@@ -104,15 +118,33 @@ const { asyncHandler } = require("../middleware/errorHandler");
  *         description: Internal server error
  */
 
-// GET /api/deliveries - Get all deliveries
+// GET /api/deliveries - Get all deliveries with caching and circuit breaker
 router.get(
   "/",
   asyncHandler(async (req, res) => {
-    const deliveries = await Delivery.find()
-      .populate("customer_id")
-      .populate("agent_id")
-      .sort({ scheduled_time: -1 });
-    res.json(deliveries);
+    const cacheKey = `deliveries_${JSON.stringify(req.query)}`;
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: cached, cached: true });
+    }
+
+    try {
+      const deliveries = await deliveryBreaker.fire({})
+        .then(results => results
+          .populate("customer_id")
+          .populate("agent_id")
+          .sort({ scheduled_time: -1 })
+          .limit(100)
+        );
+      cache.set(cacheKey, deliveries);
+      res.json({ success: true, data: deliveries });
+    } catch (err) {
+      if (deliveryBreaker.opened) {
+        res.status(503).json({ success: false, error: 'Service temporarily unavailable' });
+      } else {
+        res.status(500).json({ success: false, error: err.message });
+      }
+    }
   }),
 );
 
@@ -134,23 +166,40 @@ router.get(
   }),
 );
 
-// POST /api/deliveries - Create new delivery
+// POST /api/deliveries - Create new delivery with batch support
 router.post(
   "/",
   asyncHandler(async (req, res) => {
-    const { customer_id, agent_id, address, scheduled_time } = req.body;
+    const deliveries = req.body.deliveries || [req.body];
 
-    const delivery = new Delivery({
-      customer_id,
-      agent_id,
-      address,
-      scheduled_time,
-    });
+    if (deliveries.length === 1) {
+      // Single delivery creation
+      const { customer_id, agent_id, address, scheduled_time } = deliveries[0];
 
-    await delivery.save();
-    await delivery.populate("customer_id").populate("agent_id").execPopulate();
+      const delivery = new Delivery({
+        customer_id,
+        agent_id,
+        address,
+        scheduled_time,
+      });
 
-    res.status(201).json(delivery);
+      await delivery.save();
+      await delivery.populate("customer_id").populate("agent_id").execPopulate();
+
+      res.status(201).json({ success: true, data: delivery });
+    } else {
+      // Batch delivery creation
+      const createdDeliveries = await Delivery.insertMany(deliveries, {
+        ordered: false, // Continue on error
+        rawResult: true
+      });
+
+      res.status(201).json({
+        success: true,
+        inserted: createdDeliveries.insertedCount,
+        data: createdDeliveries.ops
+      });
+    }
   }),
 );
 

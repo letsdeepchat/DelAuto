@@ -6,7 +6,7 @@ const authenticateApiKey = (req, res, next) => {
   const apiKey = req.headers['x-api-key'] || req.headers['authorization'];
 
   if (!apiKey) {
-    return res.status(401).json({ error: 'API key required' });
+    return res.status(401).json({ success: false, error: 'Access token required' });
   }
 
   // In production, validate against database or secure store
@@ -14,7 +14,7 @@ const authenticateApiKey = (req, res, next) => {
   const validApiKey = process.env.API_KEY;
 
   if (!validApiKey || apiKey !== `Bearer ${validApiKey}`) {
-    return res.status(401).json({ error: 'Invalid API key' });
+    return res.status(401).json({ success: false, error: 'Invalid API key' });
   }
 
   next();
@@ -25,7 +25,7 @@ const authenticateJWT = (req, res, next) => {
   const token = req.headers['authorization']?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({ error: 'Access token required' });
+    return res.status(401).json({ success: false, error: 'Access token required' });
   }
 
   try {
@@ -36,14 +36,17 @@ const authenticateJWT = (req, res, next) => {
     req.agent = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, error: 'Token expired' });
+    }
+    return res.status(401).json({ success: false, error: 'Invalid token' });
   }
 };
 
 // Middleware to check if agent is admin
 const requireAdmin = (req, res, next) => {
   if (!req.agent || req.agent.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+    return res.status(403).json({ success: false, error: 'Insufficient permissions' });
   }
   next();
 };

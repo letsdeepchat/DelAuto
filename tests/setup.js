@@ -54,8 +54,8 @@ global.testConfig = {
   jwtSecret: process.env.JWT_SECRET || 'test-jwt-secret',
   mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/delauto_test',
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
-  twilioAccountSid: process.env.TWILIO_ACCOUNT_SID || 'test_sid',
-  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || 'test_token'
+  twilioAccountSid: process.env.TWILIO_ACCOUNT_SID || 'ACtest1234567890123456789012345678',
+  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || 'test_auth_token'
 };
 
 // Mock data for testing
@@ -65,7 +65,8 @@ global.testData = {
     customer_name: 'Test Customer',
     customer_phone: '+15555551234',
     address: '123 Test Street',
-    status: 'pending'
+    status: 'pending',
+    toString: function() { return this._id; }
   },
   user: {
     _id: '507f1f77bcf86cd799439012',
@@ -78,6 +79,46 @@ global.testData = {
     name: 'Test Agent',
     phone: '+15555556789',
     role: 'agent'
+  },
+  validDelivery: {
+    _id: '507f1f77bcf86cd799439011',
+    customer_name: 'Test Customer',
+    customer_phone: '+15555551234',
+    address: '123 Test Street',
+    status: 'pending',
+    agent_id: '507f1f77bcf86cd799439013',
+    toString: function() { return this._id; }
+  },
+  validAgent: {
+    _id: '507f1f77bcf86cd799439013',
+    name: 'Test Agent',
+    email: 'agent@test.com',
+    phone: '+15555556789',
+    role: 'agent'
+  },
+  validCustomer: {
+    _id: '507f1f77bcf86cd799439014',
+    name: 'Test Customer',
+    phone: '+15555551234',
+    email: 'customer@test.com'
+  },
+  twilioWebhookData: {
+    voice: {
+      CallSid: 'CA123456789',
+      From: '+15555551234',
+      To: '+15555556789',
+      CallStatus: 'in-progress'
+    },
+    recording: {
+      CallSid: 'CA123456789',
+      RecordingUrl: 'https://api.twilio.com/2010-04-01/Accounts/AC123/Recordings/RE123.wav',
+      RecordingDuration: '30'
+    },
+    callStatus: {
+      CallSid: 'CA123456789',
+      CallStatus: 'completed',
+      CallDuration: '45'
+    }
   }
 };
 

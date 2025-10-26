@@ -24,13 +24,23 @@ class MonitoringService {
       },
     };
 
-    // Collect system metrics immediately and then every 30 seconds
-    this.collectSystemMetrics();
-    setInterval(() => {
+    this.intervals = [];
+
+    // Only start metrics collection if not in test environment
+    if (process.env.NODE_ENV !== 'test') {
       this.collectSystemMetrics();
-    }, 30000);
+      this.intervals.push(setInterval(() => {
+        this.collectSystemMetrics();
+      }, 30000));
+    }
 
     logger.info('Monitoring service initialized');
+  }
+
+  // Cleanup method for tests
+  cleanup() {
+    this.intervals.forEach(interval => clearInterval(interval));
+    this.intervals = [];
   }
 
   /**

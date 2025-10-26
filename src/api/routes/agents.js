@@ -4,24 +4,45 @@ const Delivery = require('../../database/models/Delivery');
 const Agent = require('../../database/models/Agent');
 const { authenticateJWT, requireAdmin } = require('../middleware/auth');
 
+// GET /api/agents/:agentId/deliveries - Get agent's deliveries (access control)
+router.get('/:agentId/deliveries', authenticateJWT, async (req, res) => {
+  try {
+    const { agentId } = req.params;
+
+    // Check if user is accessing their own data or is admin
+    if (req.user.id !== agentId && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const deliveries = await Delivery.find({ agent_id: agentId })
+      .populate('customer_id')
+      .sort({ scheduled_time: -1 });
+
+    res.json({ success: true, data: deliveries });
+  } catch (error) {
+    console.error('Error fetching agent deliveries:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 // GET /api/agents/profile - Get current agent profile
 router.get('/profile', authenticateJWT, async (req, res) => {
   try {
-    const agent = await Agent.findById(req.agent.id).select('-password');
+    const agent = await Agent.findById(req.user.id).select('-password');
     if (!agent) {
-      return res.status(404).json({ error: 'Agent not found' });
+      return res.status(404).json({ success: false, error: 'Agent not found' });
     }
-    res.json(agent);
+    res.json({ success: true, data: agent });
   } catch (error) {
     console.error('Error fetching agent profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
 // GET /api/agents/deliveries - Get deliveries for current agent with recordings
 router.get('/deliveries', authenticateJWT, async (req, res) => {
   try {
-    const agentId = req.agent.id;
+    const agentId = req.user.id;
 
     // Find deliveries for the agent, populate customer
     const deliveries = await Delivery.find({ agent_id: agentId })
@@ -41,10 +62,10 @@ router.get('/deliveries', authenticateJWT, async (req, res) => {
       }),
     );
 
-    res.json(deliveriesWithRecordings);
+    res.json({ success: true, data: deliveriesWithRecordings });
   } catch (error) {
     console.error('Error fetching agent deliveries:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -56,12 +77,12 @@ router.put(
     try {
       const { deliveryId } = req.params;
       const { status } = req.body;
-      const agentId = req.agent.id;
+      const agentId = req.user.id;
 
       if (
         !['scheduled', 'in_progress', 'completed', 'failed'].includes(status)
       ) {
-        return res.status(400).json({ error: 'Invalid status' });
+        return res.status(400).json({ success: false, error: 'Invalid status' });
       }
 
       // Find and update delivery
@@ -74,13 +95,13 @@ router.put(
       if (!delivery) {
         return res
           .status(404)
-          .json({ error: 'Delivery not found or not assigned to you' });
+          .json({ success: false, error: 'Delivery not found or not assigned to you' });
       }
 
-      res.json(delivery);
+      res.json({ success: true, data: delivery });
     } catch (error) {
       console.error('Error updating delivery status:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ success: false, error: 'Internal server error' });
     }
   },
 );

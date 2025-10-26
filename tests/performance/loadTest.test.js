@@ -1,30 +1,39 @@
 const autocannon = require('autocannon');
 const request = require('supertest');
-// Note: Not requiring the full index.js to avoid port conflicts
+const { app } = require('../../src/index.js');
 const testData = require('../helpers/testData');
+const jwt = require('jsonwebtoken');
 
 describe('Performance Load Tests', () => {
   let server;
   let authToken;
 
   beforeAll(async () => {
-    // For now, skip actual server startup to avoid port conflicts
-    // This test needs to be refactored to work with the existing server
-    // or use a separate test app instance
-    server = { address: () => ({ port: 3001 }) }; // Mock for now
-    
-    // Skip authentication for now due to server conflict
-    authToken = 'mock-token';
+    // Use the actual app for testing
+    server = app.listen(0); // Use random available port
+
+    // Generate valid auth token
+    authToken = jwt.sign(
+      {
+        id: testData.validAgent._id,
+        email: testData.validAgent.email,
+        role: 'agent'
+      },
+      process.env.JWT_SECRET || 'test-secret',
+      { expiresIn: '1h' }
+    );
   });
 
   afterAll(async () => {
-    // Skip cleanup since server is mocked
+    if (server) {
+      await server.close();
+    }
   });
 
-  describe.skip('API endpoint performance', () => {
+  describe('API endpoint performance', () => {
     it('should handle high load on delivery listing endpoint', async () => {
       const { port } = server.address();
-      
+
       const result = await autocannon({
         url: `http://localhost:${port}/api/deliveries`,
         connections: 50,
@@ -49,7 +58,7 @@ describe('Performance Load Tests', () => {
 
     it('should handle concurrent call initiations', async () => {
       const { port } = server.address();
-      
+
       const callData = {
         delivery_id: testData.delivery._id.toString(),
         customer_phone: '+1234567890',
@@ -79,7 +88,7 @@ describe('Performance Load Tests', () => {
 
     it('should handle webhook bursts efficiently', async () => {
       const { port } = server.address();
-      
+
       const webhookData = {
         CallSid: 'CA123456789',
         CallStatus: 'completed',
@@ -113,10 +122,10 @@ describe('Performance Load Tests', () => {
   describe('database performance', () => {
     it('should perform efficient database queries under load', async () => {
       const startTime = Date.now();
-      
+
       // Simulate concurrent database operations
       const promises = Array.from({ length: 50 }, async (_, i) => {
-        return request(app)
+        return request(server)
           .get('/api/deliveries')
           .set('Authorization', `Bearer ${authToken}`)
           .query({
@@ -142,7 +151,7 @@ describe('Performance Load Tests', () => {
       const startTime = Date.now();
 
       const analyticsPromises = Array.from({ length: 10 }, () => {
-        return request(app)
+        return request(server)
           .get('/api/analytics/dashboard')
           .set('Authorization', `Bearer ${authToken}`)
           .query({
@@ -173,7 +182,7 @@ describe('Performance Load Tests', () => {
       const promises = [];
       for (let i = 0; i < 100; i++) {
         promises.push(
-          request(app)
+          request(server)
             .get('/api/deliveries')
             .set('Authorization', `Bearer ${authToken}`)
         );
@@ -197,18 +206,18 @@ describe('Performance Load Tests', () => {
       const startTime = Date.now();
       
       // Start CPU-intensive analytics calculation
-      const analyticsPromise = request(app)
+      const analyticsPromise = request(server)
         .get('/api/analytics/ai/generate-insights')
         .set('Authorization', `Bearer ${authToken}`)
         .query({
-          delivery_ids: Array.from({ length: 100 }, (_, i) => 
+          delivery_ids: Array.from({ length: 100 }, (_, i) =>
             testData.delivery._id.toString()
           )
         });
 
       // Simultaneously make quick API calls
       const quickPromises = Array.from({ length: 10 }, () => {
-        return request(app)
+        return request(server)
           .get('/health')
           .expect(200);
       });
@@ -246,9 +255,9 @@ describe('Performance Load Tests', () => {
       const startTime = Date.now();
 
       // Each agent makes multiple requests
-      const promises = agentTokens.flatMap(token => 
-        Array.from({ length: 5 }, () => 
-          request(app)
+      const promises = agentTokens.flatMap(token =>
+        Array.from({ length: 5 }, () =>
+          request(server)
             .get('/api/deliveries')
             .set('Authorization', `Bearer ${token}`)
             .query({ limit: 10 })
@@ -271,18 +280,18 @@ describe('Performance Load Tests', () => {
       const startTime = Date.now();
 
       const readPromises = Array.from({ length: 30 }, () =>
-        request(app)
+        request(server)
           .get('/api/deliveries')
           .set('Authorization', `Bearer ${authToken}`)
       );
 
       const writePromises = Array.from({ length: 10 }, (_, i) =>
-        request(app)
+        request(server)
           .post('/api/deliveries')
           .set('Authorization', `Bearer ${authToken}`)
           .send({
-            customer_id: testData.customer._id.toString(),
-            agent_id: testData.agent._id.toString(),
+            customer_id: testData.validCustomer._id,
+            agent_id: testData.validAgent._id,
             package_id: `PERF-PKG-${i}`,
             address: `${i} Performance Test Street`,
             scheduled_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
@@ -290,7 +299,7 @@ describe('Performance Load Tests', () => {
       );
 
       const updatePromises = Array.from({ length: 5 }, (_, i) =>
-        request(app)
+        request(server)
           .put(`/api/deliveries/${testData.delivery._id}`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({
@@ -352,7 +361,7 @@ describe('Performance Load Tests', () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Test if system is still responsive after heavy load starts
-      const testRequest = await request(app)
+      const testRequest = await request(server)
         .get('/health')
         .timeout(5000);
 
@@ -362,7 +371,7 @@ describe('Performance Load Tests', () => {
       const loadResult = await heavyLoadPromise;
 
       // System should recover and be responsive again
-      const recoveryRequest = await request(app)
+      const recoveryRequest = await request(server)
         .get('/health');
 
       expect(recoveryRequest.status).toBe(200);
@@ -374,12 +383,12 @@ describe('Performance Load Tests', () => {
     it('should handle peak delivery creation periods', async () => {
       // Simulate peak hours with burst of delivery creations
       const deliveryPromises = Array.from({ length: 50 }, (_, i) =>
-        request(app)
+        request(server)
           .post('/api/deliveries')
           .set('Authorization', `Bearer ${authToken}`)
           .send({
-            customer_id: testData.customer._id.toString(),
-            agent_id: testData.agent._id.toString(),
+            customer_id: testData.validCustomer._id,
+            agent_id: testData.validAgent._id,
             package_id: `PEAK-PKG-${i}`,
             address: `${i} Peak Hour Street`,
             scheduled_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
@@ -402,7 +411,7 @@ describe('Performance Load Tests', () => {
     it('should handle analytics dashboard refresh during busy periods', async () => {
       // Simulate multiple users refreshing dashboards
       const dashboardPromises = Array.from({ length: 20 }, () =>
-        request(app)
+        request(server)
           .get('/api/analytics/dashboard')
           .set('Authorization', `Bearer ${authToken}`)
           .query({
@@ -430,7 +439,7 @@ describe('Performance Load Tests', () => {
   describe('resource cleanup', () => {
     it('should properly clean up resources after high load', async () => {
       // Get initial resource counts
-      const initialStats = await request(app)
+      const initialStats = await request(server)
         .get('/api/admin/system-stats')
         .set('Authorization', `Bearer ${authToken}`);
 
@@ -448,7 +457,7 @@ describe('Performance Load Tests', () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Check final resource counts
-      const finalStats = await request(app)
+      const finalStats = await request(server)
         .get('/api/admin/system-stats')
         .set('Authorization', `Bearer ${authToken}`);
 

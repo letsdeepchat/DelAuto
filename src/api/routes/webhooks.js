@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const twilio = require('twilio');
 const axios = require('axios');
+const Queue = require('bull');
 const CallLog = require('../../database/models/CallLog');
 const Recording = require('../../database/models/Recording');
 const Delivery = require('../../database/models/Delivery');
@@ -10,17 +11,31 @@ const storageService = require('../../services/storageService');
 const twilioService = require('../../services/twilioService');
 const pushService = require('../../services/pushService');
 
+// Async queue for webhook processing
+const webhookQueue = new Queue('webhooks', process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+
 // Middleware to validate Twilio webhook
 const validateTwilioWebhook = (req, res, next) => {
   const twilioSignature = req.get('X-Twilio-Signature');
   const url = process.env.BASE_URL + req.originalUrl;
 
   if (!twilioSignature) {
-    return res.status(400).json({ error: 'Missing Twilio signature' });
+    return res.status(401).json({ error: 'Missing Twilio signature' });
   }
 
-  // In production, validate signature
-  // For now, skip validation for development
+  // Validate Twilio signature
+  const twilio = require('twilio');
+  const valid = twilio.validateRequest(
+    process.env.TWILIO_AUTH_TOKEN,
+    twilioSignature,
+    url,
+    req.body
+  );
+
+  if (!valid) {
+    return res.status(401).json({ error: 'Invalid Twilio signature' });
+  }
+
   next();
 };
 
@@ -55,102 +70,135 @@ router.post('/voice', validateTwilioWebhook, async (req, res) => {
   }
 });
 
-// POST /api/webhooks/recording - Handle recording completion
+// POST /api/webhooks/recording - Handle recording completion with validation
 router.post('/recording', validateTwilioWebhook, async (req, res) => {
   try {
     const { CallSid, RecordingUrl, RecordingDuration } = req.body;
     const deliveryId = req.query.delivery_id;
 
-    // Find and update call log with recording info
-    const callLog = await CallLog.findOneAndUpdate(
-      { call_sid: CallSid },
-      { recording_url: RecordingUrl, duration: RecordingDuration },
-      { new: true },
-    );
+    // Validate required fields using Joi
+    const Joi = require('joi');
+    const schema = Joi.object({
+      CallSid: Joi.string().required(),
+      RecordingUrl: Joi.string().uri().required(),
+      RecordingDuration: Joi.number().min(1).required(),
+    });
 
-    if (callLog) {
-      let finalAudioUrl = RecordingUrl;
-
-      // Download recording from Twilio and upload to Cloudflare R2
-      try {
-        if (
-          storageService &&
-          process.env.R2_ACCESS_KEY_ID !== 'dummy_access_key'
-        ) {
-          const response = await axios.get(RecordingUrl, {
-            responseType: 'arraybuffer',
-            auth: {
-              username: process.env.TWILIO_ACCOUNT_SID,
-              password: process.env.TWILIO_AUTH_TOKEN,
-            },
-          });
-
-          const fileName = `recording-${CallSid}.wav`;
-          finalAudioUrl = await storageService.uploadRecording(
-            response.data,
-            fileName,
-          );
-          console.log('Recording uploaded to R2:', finalAudioUrl);
-        }
-      } catch (error) {
-        console.error(
-          'Error uploading recording to R2, using Twilio URL:',
-          error,
-        );
-        // Fall back to Twilio URL if R2 upload fails
-      }
-
-      // Create recording entry
-      const recording = new Recording({
-        call_log_id: callLog._id,
-        audio_url: finalAudioUrl,
-        duration: RecordingDuration,
-      });
-      await recording.save();
-
-      // Notify agent if delivery has an agent assigned
-      const delivery = await Delivery.findById(callLog.delivery_id).populate(
-        'agent_id',
-      );
-      if (delivery && delivery.agent_id) {
-        // Send SMS notification
-        try {
-          await twilioService.twilioClient.messages.create({
-            body: `New customer recording available for delivery at ${delivery.address}. Check the app for details.`,
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: delivery.agent_id.phone,
-          });
-        } catch (error) {
-          console.error('Error sending SMS to agent:', error);
-        }
-
-        // Send push notification
-        try {
-          await pushService.sendNewRecordingNotification(
-            delivery.agent_id,
-            delivery,
-            finalAudioUrl,
-          );
-        } catch (error) {
-          console.error('Error sending push notification:', error);
-        }
-
-        // Emit real-time notification via Socket.io
-        const { io } = require('../../index');
-        io.to(`agent_${delivery.agent_id._id}`).emit('new-recording', {
-          deliveryId: delivery._id,
-          address: delivery.address,
-          customer: delivery.customer_id,
-          recordingUrl: finalAudioUrl,
-          duration: RecordingDuration,
-        });
-      }
+    const { error } = schema.validate({ CallSid, RecordingUrl, RecordingDuration });
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
     }
 
-    res.sendStatus(200);
+    // Respond immediately to Twilio
+    res.status(200).json({ message: 'Recording processed successfully' });
+
+    // Process asynchronously
+    await webhookQueue.add({
+      type: 'recording',
+      CallSid,
+      RecordingUrl,
+      RecordingDuration,
+      deliveryId
+    }, {
+      priority: 1,
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 1000 }
+    });
+
   } catch (error) {
-    console.error('Error handling recording webhook:', error);
+    console.error('Error queuing recording webhook:', error);
     res.status(500).send('Internal server error');
+  }
+});
+
+// Process recording webhooks asynchronously
+webhookQueue.process('recording', async (job) => {
+  const { CallSid, RecordingUrl, RecordingDuration, deliveryId } = job.data;
+
+  // Find and update call log with recording info
+  const callLog = await CallLog.findOneAndUpdate(
+    { call_sid: CallSid },
+    { recording_url: RecordingUrl, duration: RecordingDuration },
+    { new: true },
+  );
+
+  if (callLog) {
+    let finalAudioUrl = RecordingUrl;
+
+    // Download recording from Twilio and upload to Cloudflare R2
+    try {
+      if (
+        storageService &&
+        process.env.R2_ACCESS_KEY_ID !== 'dummy_access_key'
+      ) {
+        const response = await axios.get(RecordingUrl, {
+          responseType: 'arraybuffer',
+          auth: {
+            username: process.env.TWILIO_ACCOUNT_SID,
+            password: process.env.TWILIO_AUTH_TOKEN,
+          },
+        });
+
+        const fileName = `recording-${CallSid}.wav`;
+        finalAudioUrl = await storageService.uploadRecording(
+          response.data,
+          fileName,
+        );
+        console.log('Recording uploaded to R2:', finalAudioUrl);
+      }
+    } catch (error) {
+      console.error(
+        'Error uploading recording to R2, using Twilio URL:',
+        error,
+      );
+      // Fall back to Twilio URL if R2 upload fails
+    }
+
+    // Create recording entry
+    const recording = new Recording({
+      call_log_id: callLog._id,
+      audio_url: finalAudioUrl,
+      duration: RecordingDuration,
+    });
+    await recording.save();
+
+    // Notify agent if delivery has an agent assigned
+    const delivery = await Delivery.findById(callLog.delivery_id).populate(
+      'agent_id',
+    );
+    if (delivery && delivery.agent_id) {
+      // Send SMS notification
+      try {
+        await twilioService.twilioClient.messages.create({
+          body: `New customer recording available for delivery at ${delivery.address}. Check the app for details.`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: delivery.agent_id.phone,
+        });
+      } catch (error) {
+        console.error('Error sending SMS to agent:', error);
+      }
+
+      // Send push notification
+      try {
+        await pushService.sendNewRecordingNotification(
+          delivery.agent_id,
+          delivery,
+          finalAudioUrl,
+        );
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+      }
+
+      // Emit real-time notification via Socket.io
+      const { io } = require('../../index');
+      io.to(`agent_${delivery.agent_id._id}`).emit('new-recording', {
+        deliveryId: delivery._id,
+        address: delivery.address,
+        customer: delivery.customer_id,
+        recordingUrl: finalAudioUrl,
+        duration: RecordingDuration,
+      });
+    }
   }
 });
 

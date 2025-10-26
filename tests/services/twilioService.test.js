@@ -1,15 +1,33 @@
-// TWILIO SERVICE INTEGRATION TESTS - No Mocks
+// TWILIO SERVICE INTEGRATION TESTS - With Mocks
 require('dotenv').config({ path: '.env.test' });
+const sinon = require('sinon');
 
 describe('Twilio Service - Integration Tests', () => {
   const originalEnv = process.env;
+  let twilioStub;
 
   beforeEach(() => {
     jest.resetModules();
+    // Mock Twilio to avoid real API calls
+    twilioStub = sinon.stub().returns({
+      calls: {
+        create: sinon.stub().resolves({
+          sid: 'CA123456789',
+          status: 'queued'
+        })
+      }
+    });
+    // Replace the twilio module
+    require.cache[require.resolve('twilio')] = {
+      exports: twilioStub
+    };
   });
 
   afterEach(() => {
     process.env = originalEnv;
+    sinon.restore();
+    // Clear require cache
+    delete require.cache[require.resolve('twilio')];
   });
 
   describe('makeCustomerCall', () => {
@@ -29,15 +47,11 @@ describe('Twilio Service - Integration Tests', () => {
       };
 
       const twilioService = require('../../src/services/twilioService');
-      
-      try {
-        const result = await twilioService.makeCustomerCall(testDelivery);
-        // Either succeeds or fails gracefully
-        expect([200, 400, 401, 403, 500]).toContain(result?.status || 500);
-      } catch (error) {
-        // Expected - Twilio not actually configured with valid credentials
-        expect(error).toBeDefined();
-      }
+
+      const result = await twilioService.makeCustomerCall(testDelivery);
+      // Should succeed with mocked Twilio
+      expect(result.sid).toBe('CA123456789');
+      expect(result.status).toBe('queued');
     });
 
     it('should throw error when Twilio client is not configured', async () => {
@@ -67,16 +81,18 @@ describe('Twilio Service - Integration Tests', () => {
         BASE_URL: 'https://example.com'
       };
 
+      // Mock Twilio to throw error for invalid phone
+      twilioStub.returns({
+        calls: {
+          create: sinon.stub().rejects(new Error('Invalid phone number'))
+        }
+      });
+
       const twilioService = require('../../src/services/twilioService');
-      
+
       const invalidDelivery = { ...testDelivery, customer_phone: 'invalid' };
-      
-      try {
-        await twilioService.makeCustomerCall(invalidDelivery);
-      } catch (error) {
-        // Expected error for invalid phone number
-        expect(error).toBeDefined();
-      }
+
+      await expect(twilioService.makeCustomerCall(invalidDelivery)).rejects.toThrow('Invalid phone number');
     });
 
     it('should handle service errors gracefully', async () => {
@@ -89,15 +105,16 @@ describe('Twilio Service - Integration Tests', () => {
         BASE_URL: 'https://example.com'
       };
 
+      // Mock Twilio to throw service error
+      twilioStub.returns({
+        calls: {
+          create: sinon.stub().rejects(new Error('Twilio service unavailable'))
+        }
+      });
+
       const twilioService = require('../../src/services/twilioService');
-      
-      try {
-        await twilioService.makeCustomerCall(testDelivery);
-        // If successful, that's fine
-      } catch (error) {
-        // If failed, ensure it's handled properly
-        expect(error).toBeDefined();
-      }
+
+      await expect(twilioService.makeCustomerCall(testDelivery)).rejects.toThrow('Twilio service unavailable');
     });
 
     it('should validate service configuration', () => {
@@ -111,9 +128,10 @@ describe('Twilio Service - Integration Tests', () => {
       };
 
       const twilioService = require('../../src/services/twilioService');
-      
+
       // Service should be accessible
       expect(typeof twilioService.makeCustomerCall).toBe('function');
+      expect(twilioService.twilioClient).toBeDefined();
     });
   });
 
@@ -131,8 +149,101 @@ describe('Twilio Service - Integration Tests', () => {
       };
 
       const twilioService = require('../../src/services/twilioService');
-      // Should define client or handle gracefully if not configured
-      expect(twilioService.twilioClient !== undefined).toBe(true);
+      // Should define client when configured
+      expect(twilioService.twilioClient).toBeDefined();
+    });
+
+    it('should handle missing configuration gracefully', () => {
+      process.env = { ...originalEnv };
+      delete process.env.TWILIO_ACCOUNT_SID;
+      delete process.env.TWILIO_AUTH_TOKEN;
+
+      const twilioService = require('../../src/services/twilioService');
+      expect(twilioService.twilioClient).toBe(null);
+    });
+
+    it('should handle makeCustomerCall when Twilio configured', async () => {
+      process.env = {
+        ...originalEnv,
+        TWILIO_ACCOUNT_SID: 'test_sid',
+        TWILIO_AUTH_TOKEN: 'test_token',
+        TWILIO_PHONE_NUMBER: '+15555559999',
+        BASE_URL: 'https://example.com'
+      };
+
+      const twilioService = require('../../src/services/twilioService');
+
+      const result = await twilioService.makeCustomerCall(testDelivery);
+      expect(result.sid).toBe('CA123456789');
+      expect(result.status).toBe('queued');
+    });
+
+    it('should handle invalid phone number gracefully', async () => {
+      process.env = {
+        ...originalEnv,
+        TWILIO_ACCOUNT_SID: 'test_sid',
+        TWILIO_AUTH_TOKEN: 'test_token',
+        TWILIO_PHONE_NUMBER: '+15555559999',
+        BASE_URL: 'https://example.com'
+      };
+
+      twilioStub.returns({
+        calls: {
+          create: sinon.stub().rejects(new Error('Invalid phone number'))
+        }
+      });
+
+      const twilioService = require('../../src/services/twilioService');
+
+      const invalidDelivery = { ...testDelivery, customer_phone: 'invalid' };
+
+      await expect(twilioService.makeCustomerCall(invalidDelivery)).rejects.toThrow('Invalid phone number');
+    });
+
+    it('should handle service errors gracefully', async () => {
+      process.env = {
+        ...originalEnv,
+        TWILIO_ACCOUNT_SID: 'test_sid',
+        TWILIO_AUTH_TOKEN: 'test_token',
+        TWILIO_PHONE_NUMBER: '+15555559999',
+        BASE_URL: 'https://example.com'
+      };
+
+      twilioStub.returns({
+        calls: {
+          create: sinon.stub().rejects(new Error('Twilio service unavailable'))
+        }
+      });
+
+      const twilioService = require('../../src/services/twilioService');
+
+      await expect(twilioService.makeCustomerCall(testDelivery)).rejects.toThrow('Twilio service unavailable');
+    });
+
+    it('should validate service configuration', () => {
+      process.env = {
+        ...originalEnv,
+        TWILIO_ACCOUNT_SID: 'test_sid',
+        TWILIO_AUTH_TOKEN: 'test_token',
+        TWILIO_PHONE_NUMBER: '+15555559999',
+        BASE_URL: 'https://api.example.com'
+      };
+
+      const twilioService = require('../../src/services/twilioService');
+
+      expect(typeof twilioService.makeCustomerCall).toBe('function');
+      expect(twilioService.twilioClient).toBeDefined();
+    });
+
+    it('should handle twilioClient configuration', () => {
+      process.env = {
+        ...originalEnv,
+        TWILIO_ACCOUNT_SID: 'test_sid',
+        TWILIO_AUTH_TOKEN: 'test_token'
+      };
+
+      const twilioService = require('../../src/services/twilioService');
+      expect(twilioService.twilioClient).toBeDefined();
     });
 
     it('should handle missing configuration gracefully', () => {
