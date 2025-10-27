@@ -25,8 +25,13 @@ const upload = multer({
   }
 });
 
-// Database connection
-require('./database/connection');
+// Database connection - ensure it connects before starting server
+const connectDB = async () => {
+  const mongoose = require('./database/connection');
+  // Wait a bit for connection to establish
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  return mongoose;
+};
 
 // Start queue worker
 require('./queue/callWorker');
@@ -443,11 +448,22 @@ if (process.env.NODE_ENV !== 'test') {
   );
 }
 
-// Start server
-server.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Health check available at: http://localhost:${PORT}/health`);
-  logger.info(`Metrics available at: http://localhost:${PORT}/metrics`);
-});
+// Start server with database connection
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    server.listen(PORT, () => {
+      logger.info(`Server running on port ${PORT}`, { service: 'delauto-api' });
+      logger.info(`Health check available at: http://localhost:${PORT}/health`, { service: 'delauto-api' });
+      logger.info(`Metrics available at: http://localhost:${PORT}/metrics`, { service: 'delauto-api' });
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 module.exports = { app, server, io };
